@@ -96,7 +96,7 @@ module xtremeidiotsComWebTest 'modules/webTest.bicep' = {
     parWorkloadUrl: 'https://www.xtremeidiots.com'
 
     parActionGroupName: criticalActionGroup.name
-    parSeverity: 1
+    parSeverity: 0
 
     parTags: parTags
   }
@@ -130,7 +130,7 @@ module redirectXtremeIdiotsNetWebTest 'modules/webTest.bicep' = {
     parWorkloadUrl: 'https://redirect.xtremeidiots.net'
 
     parActionGroupName: criticalActionGroup.name
-    parSeverity: 2
+    parSeverity: 1
 
     parTags: parTags
   }
