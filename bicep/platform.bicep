@@ -64,3 +64,42 @@ module xtremeidiotsComWebTest 'modules/webTest.bicep' = {
     parTags: parTags
   }
 }
+
+module redirectXtremeIdiotsNetWebTest 'modules/webTest.bicep' = {
+  name: '${varDeploymentPrefix}-redirectXtremeIdiotsNetWebTest'
+  scope: resourceGroup(defaultResourceGroup.name)
+
+  params: {
+    parLocation: parLocation
+    parAppInsightsName: appInsights.outputs.outAppInsightsName
+    parWorkloadName: 'xtremeidiotsRedirect'
+    parWorkloadUrl: 'https://redirect.xtremeidiots.net'
+    parTags: parTags
+  }
+}
+
+module sourcebansXtremeIdiotsNetWebTest 'modules/webTest.bicep' = {
+  name: '${varDeploymentPrefix}-sourcebansXtremeIdiotsNetWebTest'
+  scope: resourceGroup(defaultResourceGroup.name)
+
+  params: {
+    parLocation: parLocation
+    parAppInsightsName: appInsights.outputs.outAppInsightsName
+    parWorkloadName: 'xtremeidiotsSourceBans'
+    parWorkloadUrl: 'https://sourcebans.xtremeidiots.net'
+    parTags: parTags
+  }
+}
+
+module tcadminXtremeIdiotsComWebTest 'modules/webTest.bicep' = {
+  name: '${varDeploymentPrefix}-tcadminXtremeIdiotsComWebTest'
+  scope: resourceGroup(defaultResourceGroup.name)
+
+  params: {
+    parLocation: parLocation
+    parAppInsightsName: appInsights.outputs.outAppInsightsName
+    parWorkloadName: 'xtremeidiotsTcAdmin'
+    parWorkloadUrl: 'https://tcadmin.xtremeidiots.com'
+    parTags: parTags
+  }
+}
