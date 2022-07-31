@@ -1,0 +1,36 @@
+trigger: none
+pr: none
+
+pool: 'Dedicated'
+
+resources:
+  pipelines:
+  - pipeline: platform-monitoring.Validate
+    source: platform-monitoring.Validate
+    trigger:
+      branches:
+        include:
+        - main
+
+stages: 
+- stage: DeployPrdPlatform
+  jobs:
+
+  - deployment: DeployPrdPlatformBicep
+    environment: 'platform-monitoring'
+
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+            - task: AzureCLI@2
+              displayName: DeployPrdPlatformBicep
+              inputs:
+                azureSubscription: 'spn-ado-Personal-Public-platform-monitoring'
+                scriptType: 'pscore'
+                scriptLocation: 'inlineScript'
+                inlineScript: |
+                  az deployment sub create `
+                    --template-file bicep/platform.bicep `
+                    --location 'uksouth' `
+                    --parameters @params/platform.prd.json
