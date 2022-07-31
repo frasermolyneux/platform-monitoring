@@ -109,7 +109,7 @@ module xtremeidiotsComTaskWebTest 'modules/webTest.bicep' = {
     parLocation: parLocation
 
     parAppInsightsName: appInsights.name
-    parWorkloadName: 'xtremeidiotsForums'
+    parWorkloadName: 'xtremeidiotsForumsTask'
     parWorkloadUrl: 'https://www.xtremeidiots.com/applications/core/interface/task/web.php?key=${parXtremeIdiotsTaskKey}'
 
     parActionGroupName: criticalActionGroup.name
