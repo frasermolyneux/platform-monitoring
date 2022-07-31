@@ -169,3 +169,37 @@ module tcadminXtremeIdiotsComWebTest 'modules/webTest.bicep' = {
     parTags: parTags
   }
 }
+
+module bishopsBeesCoUkWebTest 'modules/webTest.bicep' = {
+  name: '${varDeploymentPrefix}-bishopsBeesCoUkWebTest'
+
+  params: {
+    parLocation: parLocation
+
+    parAppInsightsName: appInsights.name
+    parWorkloadName: 'bishopsBees'
+    parWorkloadUrl: 'https://bishopsbees.co.uk'
+
+    parActionGroupName: criticalActionGroup.name
+    parSeverity: 1
+
+    parTags: parTags
+  }
+}
+
+module molyneuxMeWebTest 'modules/webTest.bicep' = {
+  name: '${varDeploymentPrefix}-molyneuxMeWebTest'
+
+  params: {
+    parLocation: parLocation
+
+    parAppInsightsName: appInsights.name
+    parWorkloadName: 'molyneuxMe'
+    parWorkloadUrl: 'https://molyneux.me'
+
+    parActionGroupName: warningActionGroup.name
+    parSeverity: 1
+
+    parTags: parTags
+  }
+}
