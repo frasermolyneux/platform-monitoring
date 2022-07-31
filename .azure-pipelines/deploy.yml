@@ -36,3 +36,25 @@ stages:
                     --template-file bicep/platform.bicep `
                     --location 'uksouth' `
                     --parameters @params/platform.prd.json
+
+- stage: DeployPrdServices
+  jobs:
+
+  - deployment: DeployPrdServicesBicep
+    environment: 'platform-monitoring'
+
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+            - task: AzureCLI@2
+              displayName: DeployPrdServicesBicep
+              inputs:
+                azureSubscription: 'spn-ado-Personal-Public-platform-monitoring'
+                scriptType: 'pscore'
+                scriptLocation: 'inlineScript'
+                inlineScript: |
+                  az deployment group create `
+                    --resource-group 'rg-platform-monitoring-prd-uksouth' `
+                    --template-file bicep/services.bicep `
+                    --parameters @params/services.prd.json

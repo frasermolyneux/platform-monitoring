@@ -1,3 +1,8 @@
+parameters:
+- name: skipBicepValidate
+  type: boolean
+  default: false
+
 trigger:
   branches:
     include:
@@ -29,6 +34,7 @@ stages:
     steps:
       - script: |
           az bicep build --file bicep/platform.bicep
+          az bicep build --file bicep/services.bicep
         name: LintBicepCode
         displayName: Run Bicep Linter
 
@@ -52,6 +58,14 @@ stages:
                     --location 'uksouth' `
                     --parameters @params/platform.prd.json
 
+                  if ('${{ parameters.skipBicepValidate }}' -eq $false)
+                  {
+                    az deployment group validate `
+                      --resource-group 'rg-platform-monitoring-prd-uksouth' `
+                      --template-file bicep/services.bicep `
+                      --parameters @params/services.prd.json
+                  }
+
             - task: AzureCLI@2
               name: RunWhatIfDeploy
               inputs:
@@ -63,3 +77,11 @@ stages:
                     --template-file bicep/platform.bicep `
                     --location 'uksouth' `
                     --parameters @params/platform.prd.json
+
+                  if ('${{ parameters.skipBicepValidate }}' -eq $false)
+                  {
+                    az deployment group what-if `
+                      --resource-group 'rg-platform-monitoring-prd-uksouth' `
+                      --template-file bicep/services.bicep `
+                      --parameters @params/services.prd.json
+                  }
