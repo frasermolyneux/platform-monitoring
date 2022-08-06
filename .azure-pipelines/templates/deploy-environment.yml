@@ -46,7 +46,7 @@ stages:
             - task: AzureCLI@2
               displayName: Deploy${{ parameters.environmentFriendlyName }}ServicesBicep
               inputs:
-                azureSubscription: 'spn-ado-Personal-Public-platform-monitoring'
+                azureSubscription: ${{ parameters.azureSubscription }}
                 scriptType: 'pscore'
                 scriptLocation: 'inlineScript'
                 inlineScript: |
