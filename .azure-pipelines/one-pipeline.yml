@@ -32,7 +32,6 @@ stages:
   - template: templates/bicep-environment-validation.yml
     parameters:
       dependsOn: [BicepLinter]
-      jobName: 'ValidateBicepAgainstPrdEnvironment'
       azureSubscription: 'spn-ado-Personal-Public-platform-monitoring'
       environment: 'platform-monitoring-prd'
       environmentName: 'Prd'

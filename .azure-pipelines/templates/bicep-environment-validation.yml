@@ -2,6 +2,8 @@ parameters:
 - name: dependsOn
   type: object
   default: []
+- name: azureSubscription
+  type: string
 - name: environment
   type: string
 - name: environmentName
