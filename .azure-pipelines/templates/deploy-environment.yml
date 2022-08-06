@@ -11,7 +11,7 @@ parameters:
 stages:
 - stage: Deploy${{ parameters.environmentName }}
   jobs:
-  - deployment: Deploy${{ parameters.environmentFriendlyName }}PlatformBicep
+  - deployment: Deploy${{ parameters.environmentName }}PlatformBicep
     environment: ${{ parameters.environment }}
 
     workspace:
