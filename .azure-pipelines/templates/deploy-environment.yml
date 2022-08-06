@@ -1,0 +1,56 @@
+parameters:
+- name: azureSubscription
+  type: string
+- name: environmentFriendlyName
+  type: string
+- name: environment
+  type: string
+
+stages:
+- stage: Deploy${{ parameters.environmentFriendlyName }}
+  jobs:
+  - deployment: Deploy${{ parameters.environmentFriendlyName }}PlatformBicep
+    environment: 'platform-monitoring-${{ parameters.environment }}'
+
+    workspace:
+      clean: all
+
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+            - checkout: self
+
+            - task: AzureCLI@2
+              displayName: Deploy${{ parameters.environmentFriendlyName }}PlatformBicep
+              inputs:
+                azureSubscription: ${{ parameters.azureSubscription }}
+                scriptType: 'pscore'
+                scriptLocation: 'inlineScript'
+                inlineScript: |
+                  az deployment sub create `
+                    --template-file bicep/platform.bicep `
+                    --location 'uksouth' `
+                    --parameters @params/platform.${{ parameters.environment }}.json
+
+  - deployment: Deploy${{ parameters.environmentFriendlyName }}ServicesBicep
+    dependsOn: ['Deploy${{ parameters.environmentFriendlyName }}PlatformBicep']
+    environment: 'platform-monitoring-${{ parameters.environment }}'
+
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+            - checkout: self
+            
+            - task: AzureCLI@2
+              displayName: Deploy${{ parameters.environmentFriendlyName }}ServicesBicep
+              inputs:
+                azureSubscription: 'spn-ado-Personal-Public-platform-monitoring'
+                scriptType: 'pscore'
+                scriptLocation: 'inlineScript'
+                inlineScript: |
+                  az deployment group create `
+                    --resource-group 'rg-platform-monitoring-${{ parameters.environment }}-uksouth' `
+                    --template-file bicep/services.bicep `
+                    --parameters @params/services.${{ parameters.environment }}.json
