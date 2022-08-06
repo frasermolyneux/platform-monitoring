@@ -56,9 +56,9 @@ jobs:
                   --location 'uksouth' `
                   --parameters @params/platform.${{ parameters.environment }}.json
 
-                if ((az group what-if --name 'rg-platform-monitoring-${{ parameters.environment }}-uksouth') -eq $true) { 
+                if ((az group exists --name 'rg-platform-monitoring-${{ parameters.environment }}-uksouth') -eq $true) { 
                   Write-Host "Performing az deployment group validation as 'rg-platform-monitoring-${{ parameters.environment }}-uksouth' exists"
-                  az deployment group validate `
+                  az deployment group what-if `
                     --resource-group 'rg-platform-monitoring-${{ parameters.environment }}-uksouth' `
                     --template-file $(Build.sourcesDirectory)/bicep/services.bicep `
                     --parameters @$(Build.sourcesDirectory)/params/services.${{ parameters.environment }}.json
