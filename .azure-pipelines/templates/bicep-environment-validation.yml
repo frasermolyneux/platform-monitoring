@@ -5,15 +5,17 @@ parameters:
 - name: dependsOn
   type: object
   default: []
-- name: azureSubscription
-  type: string
 - name: environment
+  type: string
+- name: environmentName
+  type: string
+- name: environmentTag
   type: string
 
 jobs:
-- deployment: ${{ parameters.jobName }}
+- deployment: ValidateBicepAgainst${{ parameters.environmentName }}Environment
   dependsOn: ${{ parameters.dependsOn }}
-  environment: 'platform-monitoring-${{ parameters.environment }}'
+  environment: ${{ parameters.environment }}
 
   workspace:
     clean: all
@@ -34,14 +36,14 @@ jobs:
                 az deployment sub validate `
                   --template-file bicep/platform.bicep `
                   --location 'uksouth' `
-                  --parameters @params/platform.${{ parameters.environment }}.json
+                  --parameters @params/platform.${{ parameters.environmentTag }}.json
 
-                if ((az group exists --name 'rg-platform-monitoring-${{ parameters.environment }}-uksouth') -eq $true) { 
-                  Write-Host "Performing az deployment group validation as 'rg-platform-monitoring-${{ parameters.environment }}-uksouth' exists"
+                if ((az group exists --name 'rg-platform-monitoring-${{ parameters.environmentTag }}-uksouth') -eq $true) { 
+                  Write-Host "Performing az deployment group validation as 'rg-platform-monitoring-${{ parameters.environmentTag }}-uksouth' exists"
                   az deployment group validate `
-                    --resource-group 'rg-platform-monitoring-${{ parameters.environment }}-uksouth' `
+                    --resource-group 'rg-platform-monitoring-${{ parameters.environmentTag }}-uksouth' `
                     --template-file $(Build.sourcesDirectory)/bicep/services.bicep `
-                    --parameters @$(Build.sourcesDirectory)/params/services.${{ parameters.environment }}.json
+                    --parameters @$(Build.sourcesDirectory)/params/services.${{ parameters.environmentTag }}.json
                 }
 
           - task: AzureCLI@2
@@ -54,12 +56,12 @@ jobs:
                 az deployment sub what-if `
                   --template-file bicep/platform.bicep `
                   --location 'uksouth' `
-                  --parameters @params/platform.${{ parameters.environment }}.json
+                  --parameters @params/platform.${{ parameters.environmentTag }}.json
 
-                if ((az group exists --name 'rg-platform-monitoring-${{ parameters.environment }}-uksouth') -eq $true) { 
-                  Write-Host "Performing az deployment group validation as 'rg-platform-monitoring-${{ parameters.environment }}-uksouth' exists"
+                if ((az group exists --name 'rg-platform-monitoring-${{ parameters.environmentTag }}-uksouth') -eq $true) { 
+                  Write-Host "Performing az deployment group validation as 'rg-platform-monitoring-${{ parameters.environmentTag }}-uksouth' exists"
                   az deployment group what-if `
-                    --resource-group 'rg-platform-monitoring-${{ parameters.environment }}-uksouth' `
+                    --resource-group 'rg-platform-monitoring-${{ parameters.environmentTag }}-uksouth' `
                     --template-file $(Build.sourcesDirectory)/bicep/services.bicep `
-                    --parameters @$(Build.sourcesDirectory)/params/services.${{ parameters.environment }}.json
+                    --parameters @$(Build.sourcesDirectory)/params/services.${{ parameters.environmentTag }}.json
                 }

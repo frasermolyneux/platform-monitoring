@@ -1,16 +1,18 @@
 parameters:
 - name: azureSubscription
   type: string
-- name: environmentFriendlyName
-  type: string
 - name: environment
+  type: string
+- name: environmentName
+  type: string
+- name: environmentTag
   type: string
 
 stages:
-- stage: Deploy${{ parameters.environmentFriendlyName }}
+- stage: Deploy${{ parameters.environmentName }}
   jobs:
   - deployment: Deploy${{ parameters.environmentFriendlyName }}PlatformBicep
-    environment: 'platform-monitoring-${{ parameters.environment }}'
+    environment: ${{ parameters.environment }}
 
     workspace:
       clean: all
@@ -22,7 +24,7 @@ stages:
             - checkout: self
 
             - task: AzureCLI@2
-              displayName: Deploy${{ parameters.environmentFriendlyName }}PlatformBicep
+              displayName: Deploy${{ parameters.environmentName }}PlatformBicep
               inputs:
                 azureSubscription: ${{ parameters.azureSubscription }}
                 scriptType: 'pscore'
@@ -31,11 +33,11 @@ stages:
                   az deployment sub create `
                     --template-file bicep/platform.bicep `
                     --location 'uksouth' `
-                    --parameters @params/platform.${{ parameters.environment }}.json
+                    --parameters @params/platform.${{ parameters.environmentTag }}.json
 
-  - deployment: Deploy${{ parameters.environmentFriendlyName }}ServicesBicep
-    dependsOn: ['Deploy${{ parameters.environmentFriendlyName }}PlatformBicep']
-    environment: 'platform-monitoring-${{ parameters.environment }}'
+  - deployment: Deploy${{ parameters.environmentName }}ServicesBicep
+    dependsOn: ['Deploy${{ parameters.environmentName }}PlatformBicep']
+    environment: ${{ parameters.environment }}
 
     strategy:
       runOnce:
@@ -44,13 +46,13 @@ stages:
             - checkout: self
             
             - task: AzureCLI@2
-              displayName: Deploy${{ parameters.environmentFriendlyName }}ServicesBicep
+              displayName: Deploy${{ parameters.environmentName }}ServicesBicep
               inputs:
                 azureSubscription: ${{ parameters.azureSubscription }}
                 scriptType: 'pscore'
                 scriptLocation: 'inlineScript'
                 inlineScript: |
                   az deployment group create `
-                    --resource-group 'rg-platform-monitoring-${{ parameters.environment }}-uksouth' `
+                    --resource-group 'rg-platform-monitoring-${{ parameters.environmentTag }}-uksouth' `
                     --template-file bicep/services.bicep `
-                    --parameters @params/services.${{ parameters.environment }}.json
+                    --parameters @params/services.${{ parameters.environmentTag }}.json
