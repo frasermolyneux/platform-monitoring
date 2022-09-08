@@ -31,6 +31,7 @@ stages:
                 scriptLocation: 'inlineScript'
                 inlineScript: |
                   az deployment sub create `
+                    --name 'platformMonitoring${{ parameters.environmentName }}' `
                     --template-file bicep/platform.bicep `
                     --location 'uksouth' `
                     --parameters @params/platform.${{ parameters.environmentTag }}.json
@@ -53,6 +54,7 @@ stages:
                 scriptLocation: 'inlineScript'
                 inlineScript: |
                   az deployment group create `
+                    --name 'servicesMonitoring${{ parameters.environmentName }}' `
                     --resource-group 'rg-platform-monitoring-${{ parameters.environmentTag }}-uksouth' `
                     --template-file bicep/services.bicep `
                     --parameters @params/services.${{ parameters.environmentTag }}.json

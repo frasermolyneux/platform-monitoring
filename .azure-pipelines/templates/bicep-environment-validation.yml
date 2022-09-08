@@ -33,6 +33,7 @@ jobs:
               scriptLocation: 'inlineScript'
               inlineScript: |
                 az deployment sub validate `
+                  --name 'platformMonitoring${{ parameters.environmentName }}' `
                   --template-file bicep/platform.bicep `
                   --location 'uksouth' `
                   --parameters @params/platform.${{ parameters.environmentTag }}.json
@@ -40,6 +41,7 @@ jobs:
                 if ((az group exists --name 'rg-platform-monitoring-${{ parameters.environmentTag }}-uksouth') -eq $true) { 
                   Write-Host "Performing az deployment group validation as 'rg-platform-monitoring-${{ parameters.environmentTag }}-uksouth' exists"
                   az deployment group validate `
+                    --name 'servicesMonitoring${{ parameters.environmentName }}' `
                     --resource-group 'rg-platform-monitoring-${{ parameters.environmentTag }}-uksouth' `
                     --template-file $(Build.sourcesDirectory)/bicep/services.bicep `
                     --parameters @$(Build.sourcesDirectory)/params/services.${{ parameters.environmentTag }}.json
@@ -53,6 +55,7 @@ jobs:
               scriptLocation: 'inlineScript'
               inlineScript: |
                 az deployment sub what-if `
+                  --name 'platformMonitoring${{ parameters.environmentName }}' `
                   --template-file bicep/platform.bicep `
                   --location 'uksouth' `
                   --parameters @params/platform.${{ parameters.environmentTag }}.json
@@ -60,6 +63,7 @@ jobs:
                 if ((az group exists --name 'rg-platform-monitoring-${{ parameters.environmentTag }}-uksouth') -eq $true) { 
                   Write-Host "Performing az deployment group validation as 'rg-platform-monitoring-${{ parameters.environmentTag }}-uksouth' exists"
                   az deployment group what-if `
+                    --name 'servicesMonitoring${{ parameters.environmentName }}' `
                     --resource-group 'rg-platform-monitoring-${{ parameters.environmentTag }}-uksouth' `
                     --template-file $(Build.sourcesDirectory)/bicep/services.bicep `
                     --parameters @$(Build.sourcesDirectory)/params/services.${{ parameters.environmentTag }}.json
