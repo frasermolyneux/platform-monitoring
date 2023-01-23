@@ -9,13 +9,13 @@
             "value": "prd"
         },
         "parLoggingSubscriptionId": {
-            "value": "7760848c-794d-4a19-8cb2-52f71a21ac2b"
+            "value": "d68448b0-9947-46d7-8771-baa331a3063a"
         },
         "parLoggingResourceGroupName": {
-            "value": "rg-platform-logging-prd-uksouth"
+            "value": "rg-platform-logging-3s6dbzxizuv4m-prd-uksouth"
         },
         "parLoggingWorkspaceName": {
-            "value": "log-platform-prd-uksouth"
+            "value": "log-platform-3s6dbzxizuv4m-prd-uksouth"
         },
         "parTags": {
             "value": {

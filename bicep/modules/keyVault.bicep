@@ -5,6 +5,16 @@ param parKeyVaultName string
 param parLocation string
 param parTags object
 
+@description('Must be set to "default" if the Key Vault does not exist. Setting to "recover" avoids the accessPolicies being wiped each time.')
+param parKeyVaultCreateMode string = 'recover'
+
+param parEnabledForDeployment bool = false
+param parEnabledForTemplateDeployment bool = false
+
+param parEnabledForRbacAuthorization bool = false
+
+param parSoftDeleteRetentionInDays int = 90
+
 // Module Resources
 resource keyVault 'Microsoft.KeyVault/vaults@2021-11-01-preview' = {
   name: parKeyVaultName
@@ -13,12 +23,12 @@ resource keyVault 'Microsoft.KeyVault/vaults@2021-11-01-preview' = {
 
   properties: {
     accessPolicies: []
-    createMode: 'default' // Must be set to 'default' if the Key Vault does not exist. Setting to 'recover' avoids the accessPolicies being wiped each time.
+    createMode: parKeyVaultCreateMode
 
     enablePurgeProtection: true
-    enableRbacAuthorization: false
-    enabledForDeployment: true
-    enabledForTemplateDeployment: true
+    enableRbacAuthorization: parEnabledForRbacAuthorization
+    enabledForDeployment: parEnabledForDeployment
+    enabledForTemplateDeployment: parEnabledForTemplateDeployment
 
     networkAcls: {
       bypass: 'AzureServices'
@@ -30,7 +40,7 @@ resource keyVault 'Microsoft.KeyVault/vaults@2021-11-01-preview' = {
       name: 'standard'
     }
 
-    softDeleteRetentionInDays: 90
+    softDeleteRetentionInDays: parSoftDeleteRetentionInDays
 
     tenantId: tenant().tenantId
   }

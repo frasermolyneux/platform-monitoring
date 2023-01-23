@@ -27,19 +27,19 @@ stages:
   - template: jobs/bicep-lint-code.yml@ado-pipeline-templates
     parameters: 
       jobName: 'BicepLinter'
-      azureSubscription: 'spn-ado-Personal-Public-devtest'
+      azureSubscription: 'spn-platform-monitoring-production'
 
   - template: templates/bicep-environment-validation.yml
     parameters:
       dependsOn: [BicepLinter]
-      azureSubscription: 'spn-ado-Personal-Public-platform-monitoring'
-      environment: 'platform-monitoring-prd'
+      azureSubscription: 'spn-platform-monitoring-production'
+      environment: 'platform-monitoring-Production'
       environmentName: 'Prd'
       environmentTag: 'prd'
 
 - template: templates/deploy-environment.yml
   parameters:
-    azureSubscription: 'spn-ado-Personal-Public-platform-monitoring'
-    environment: 'platform-monitoring-prd'
+    azureSubscription: 'spn-platform-monitoring-production'
+    environment: 'platform-monitoring-Production'
     environmentName: 'Prd'
     environmentTag: 'prd'

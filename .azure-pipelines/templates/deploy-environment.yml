@@ -29,12 +29,26 @@ stages:
                 azureSubscription: ${{ parameters.azureSubscription }}
                 scriptType: 'pscore'
                 scriptLocation: 'inlineScript'
+                addSpnToEnvironment: true
                 inlineScript: |
+                  $deletedKeyVaults = az keyvault list-deleted --query '[].properties.vaultId' | ConvertFrom-Json
+                  $isDeleted = $deletedKeyVaults | where {$_ -match 'rg-platform-vault-*.*-${{ parameters.environmentTag }}-uksouth'}
+
+                  $keyVaultCreateMode = "default"
+                  if ($isDeleted -ne $null) {
+                    # To allow the environments to be torn-down and re-created, the Key Vault Create Mode must be set to 'recover'.
+                    $keyVaultCreateMode = "recover"
+                  }
+
+                  $deployPrincipalId = (az ad sp show --id $env:servicePrincipalId | ConvertFrom-Json).id
+
                   az deployment sub create `
                     --name 'platformMonitoring${{ parameters.environmentName }}' `
                     --template-file bicep/platform.bicep `
                     --location 'uksouth' `
-                    --parameters @params/platform.${{ parameters.environmentTag }}.json
+                    --parameters @params/platform.${{ parameters.environmentTag }}.json `
+                      parPlatformKeyVaultCreateMode=$keyVaultCreateMode `
+                      parDeployPrincipalId=$deployPrincipalId
 
   - deployment: Deploy${{ parameters.environmentName }}ServicesBicep
     dependsOn: ['Deploy${{ parameters.environmentName }}PlatformBicep']

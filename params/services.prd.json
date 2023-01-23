@@ -8,30 +8,6 @@
         "parEnvironment": {
             "value": "prd"
         },
-        "parAlertEmail": {
-            "reference": {
-                "keyVault": {
-                    "id": "/subscriptions/7760848c-794d-4a19-8cb2-52f71a21ac2b/resourceGroups/rg-platform-monitoring-prd-uksouth/providers/Microsoft.KeyVault/vaults/kv-monitor-prd-uksouth"
-                },
-                "secretName": "alert-email"
-            }
-        },
-        "parAlertPhone": {
-            "reference": {
-                "keyVault": {
-                    "id": "/subscriptions/7760848c-794d-4a19-8cb2-52f71a21ac2b/resourceGroups/rg-platform-monitoring-prd-uksouth/providers/Microsoft.KeyVault/vaults/kv-monitor-prd-uksouth"
-                },
-                "secretName": "alert-phone"
-            }
-        },
-        "parXtremeIdiotsTaskKey": {
-            "reference": {
-                "keyVault": {
-                    "id": "/subscriptions/7760848c-794d-4a19-8cb2-52f71a21ac2b/resourceGroups/rg-platform-monitoring-prd-uksouth/providers/Microsoft.KeyVault/vaults/kv-monitor-prd-uksouth"
-                },
-                "secretName": "xtremeidiots-task-key"
-            }
-        },
         "parTags": {
             "value": {
                 "Environment": "prd",
