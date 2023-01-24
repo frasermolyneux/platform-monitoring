@@ -67,7 +67,8 @@ stages:
                 scriptType: 'pscore'
                 scriptLocation: 'inlineScript'
                 inlineScript: |
-                  $resourceGroupName = az deployment sub show --name platformMonitoring${{ parameters.environmentName }} --output tsv --query properties.outputs.resourceGroupName
+                  $deployment = az deployment sub show --name platformMonitoring${{ parameters.environmentName }} 2>$null
+                  $resourceGroupName = ($deployment | ConvertFrom-Json).properties.outputs.resourceGroupName
 
                   az deployment group create `
                     --name 'servicesMonitoring${{ parameters.environmentName }}' `
