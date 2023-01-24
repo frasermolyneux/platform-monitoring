@@ -32,7 +32,7 @@ stages:
                 addSpnToEnvironment: true
                 inlineScript: |
                   $deletedKeyVaults = az keyvault list-deleted --query '[].properties.vaultId' | ConvertFrom-Json
-                  $isDeleted = $deletedKeyVaults | where {$_ -match 'rg-platform-vault-*.*-${{ parameters.environmentTag }}-uksouth'}
+                  $isDeleted = $deletedKeyVaults | where {$_ -match 'rg-platform-monitoring-*.*-${{ parameters.environmentTag }}-uksouth'}
 
                   $keyVaultCreateMode = "default"
                   if ($isDeleted -ne $null) {
@@ -67,8 +67,10 @@ stages:
                 scriptType: 'pscore'
                 scriptLocation: 'inlineScript'
                 inlineScript: |
+                  $resourceGroupName = az deployment sub show --name platformMonitoring${{ parameters.environmentName }} --output tsv --query properties.outputs.resourceGroupName
+
                   az deployment group create `
                     --name 'servicesMonitoring${{ parameters.environmentName }}' `
-                    --resource-group 'rg-platform-monitoring-${{ parameters.environmentTag }}-uksouth' `
+                    --resource-group $resourceGroupName `
                     --template-file bicep/services.bicep `
                     --parameters @params/services.${{ parameters.environmentTag }}.json

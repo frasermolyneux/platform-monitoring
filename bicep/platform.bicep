@@ -78,3 +78,6 @@ module appInsights 'modules/appInsights.bicep' = {
     parTags: parTags
   }
 }
+
+// Outputs
+output resourceGroupName string = defaultResourceGroup.name
