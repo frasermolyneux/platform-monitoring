@@ -49,7 +49,7 @@ jobs:
                 $deployment = az deployment sub show --name platformMonitoring${{ parameters.environmentName }} 2>$null
 
                 if ($null -ne $deployment) { 
-                  $resourceGroupName = ($deployment | ConvertFrom-Json).properties.outputs.resourceGroupName
+                  $resourceGroupName = ($deployment | ConvertFrom-Json).properties.outputs.resourceGroupName.value
 
                   if ($resourceGroupName -ne $null) {
                     az deployment group validate `
@@ -76,7 +76,7 @@ jobs:
                 $deployment = az deployment sub show --name platformMonitoring${{ parameters.environmentName }} 2>$null
 
                 if ($null -ne $deployment) { 
-                  $resourceGroupName = ($deployment | ConvertFrom-Json).properties.outputs.resourceGroupName
+                  $resourceGroupName = ($deployment | ConvertFrom-Json).properties.outputs.resourceGroupName.value
 
                   if ($resourceGroupName -ne $null) {
                     az deployment group what-if `
