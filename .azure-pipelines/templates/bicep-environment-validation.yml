@@ -61,7 +61,7 @@ jobs:
 
                   az deployment group validate `
                     --name 'servicesMonitoring${{ parameters.environmentName }}' `
-                    --resource-group $resourceGroupName' `
+                    --resource-group $resourceGroupName `
                     --template-file $(Build.sourcesDirectory)/bicep/services.bicep `
                     --parameters @$(Build.sourcesDirectory)/params/services.${{ parameters.environmentTag }}.json
                 }
@@ -86,7 +86,7 @@ jobs:
 
                   az deployment group what-if `
                     --name 'servicesMonitoring${{ parameters.environmentName }}' `
-                    --resource-group 'rg-platform-monitoring-${{ parameters.environmentTag }}-uksouth' `
+                    --resource-group $resourceGroupName `
                     --template-file $(Build.sourcesDirectory)/bicep/services.bicep `
                     --parameters @$(Build.sourcesDirectory)/params/services.${{ parameters.environmentTag }}.json
                 }
