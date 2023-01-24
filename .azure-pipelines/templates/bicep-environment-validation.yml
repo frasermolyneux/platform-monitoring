@@ -51,11 +51,13 @@ jobs:
                 if ($null -ne $deployment) { 
                   $resourceGroupName = ($deployment | ConvertFrom-Json).properties.outputs.resourceGroupName
 
-                  az deployment group validate `
-                    --name 'servicesMonitoring${{ parameters.environmentName }}' `
-                    --resource-group $resourceGroupName `
-                    --template-file $(Build.sourcesDirectory)/bicep/services.bicep `
-                    --parameters @$(Build.sourcesDirectory)/params/services.${{ parameters.environmentTag }}.json
+                  if ($resourceGroupName -ne $null) {
+                    az deployment group validate `
+                      --name 'servicesMonitoring${{ parameters.environmentName }}' `
+                      --resource-group $resourceGroupName `
+                      --template-file $(Build.sourcesDirectory)/bicep/services.bicep `
+                      --parameters @$(Build.sourcesDirectory)/params/services.${{ parameters.environmentTag }}.json
+                  }
                 }
 
           - task: AzureCLI@2
@@ -76,9 +78,11 @@ jobs:
                 if ($null -ne $deployment) { 
                   $resourceGroupName = ($deployment | ConvertFrom-Json).properties.outputs.resourceGroupName
 
-                  az deployment group what-if `
-                    --name 'servicesMonitoring${{ parameters.environmentName }}' `
-                    --resource-group $resourceGroupName `
-                    --template-file $(Build.sourcesDirectory)/bicep/services.bicep `
-                    --parameters @$(Build.sourcesDirectory)/params/services.${{ parameters.environmentTag }}.json
+                  if ($resourceGroupName -ne $null) {
+                    az deployment group what-if `
+                      --name 'servicesMonitoring${{ parameters.environmentName }}' `
+                      --resource-group $resourceGroupName `
+                      --template-file $(Build.sourcesDirectory)/bicep/services.bicep `
+                      --parameters @$(Build.sourcesDirectory)/params/services.${{ parameters.environmentTag }}.json
+                  }
                 }
