@@ -35,14 +35,6 @@ jobs:
               inlineScript: |
                 $deployPrincipalId = (az ad sp show --id $env:servicePrincipalId | ConvertFrom-Json).id
 
-                az deployment sub validate `
-                  --name 'strategicKeyVault${{ parameters.environmentName }}' `
-                  --template-file bicep/platformKeyVault.bicep `
-                  --location 'uksouth' `
-                  --parameters @params/platformKeyVault.${{ parameters.environmentTag }}.json `
-                      parPlatformKeyVaultCreateMode='recover' `
-                      parDeployPrincipalId=$deployPrincipalId
-
                 $keyVaults = az keyvault list --query '[].id' | ConvertFrom-Json
                 $existing = $keyVaults | where {$_ -match 'rg-platform-monitoring-*.*-${{ parameters.environmentTag }}-uksouth'}
 

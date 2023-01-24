@@ -31,6 +31,8 @@ stages:
                 scriptLocation: 'inlineScript'
                 addSpnToEnvironment: true
                 inlineScript: |
+                  $deployPrincipalId = (az ad sp show --id $env:servicePrincipalId | ConvertFrom-Json).id
+
                   $deletedKeyVaults = az keyvault list-deleted --query '[].properties.vaultId' | ConvertFrom-Json
                   $isDeleted = $deletedKeyVaults | where {$_ -match 'rg-platform-monitoring-*.*-${{ parameters.environmentTag }}-uksouth'}
 
@@ -39,8 +41,6 @@ stages:
                     # To allow the environments to be torn-down and re-created, the Key Vault Create Mode must be set to 'recover'.
                     $keyVaultCreateMode = "recover"
                   }
-
-                  $deployPrincipalId = (az ad sp show --id $env:servicePrincipalId | ConvertFrom-Json).id
 
                   az deployment sub create `
                     --name 'platformMonitoring${{ parameters.environmentName }}' `
