@@ -8,7 +8,7 @@ param parTags object
 
 // Variables
 var varDeploymentPrefix = 'servicesMonitoring' //Prevent deployment naming conflicts
-var varAppInsightsName = 'ai-monitoring-${parEnvironment}-${parLocation}'
+var varAppInsightsName = 'ai-platform-monitoring-${uniqueString(subscription().id)}-${parEnvironment}-${parLocation}'
 
 // Existing In-Scope Resources
 resource keyVault 'Microsoft.KeyVault/vaults@2019-09-01' existing = {
