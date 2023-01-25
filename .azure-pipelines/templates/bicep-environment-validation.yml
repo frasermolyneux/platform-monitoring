@@ -48,18 +48,12 @@ jobs:
                       parPlatformKeyVaultCreateMode=$keyVaultCreateMode `
                       parDeployPrincipalId=$deployPrincipalId
 
-                $deployment = az deployment sub show --name platformMonitoring${{ parameters.environmentName }} 2>$null
-
-                if ($null -ne $deployment) { 
-                  $resourceGroupName = ($deployment | ConvertFrom-Json).properties.outputs.resourceGroupName.value
-
-                  if ($resourceGroupName -ne $null) {
-                    az deployment group validate `
-                      --name 'servicesMonitoring${{ parameters.environmentName }}' `
-                      --resource-group $resourceGroupName `
-                      --template-file $(Build.sourcesDirectory)/bicep/services.bicep `
-                      --parameters @$(Build.sourcesDirectory)/params/services.${{ parameters.environmentTag }}.json
-                  }
+                if ((az group exists --name 'rg-platform-monitoring-${{ parameters.environmentTag }}-$($config.parameters.parLocation.value)-$($config.parameters.parInstance.value)') -eq $true) {
+                  az deployment group validate `
+                    --name 'servicesMonitoring${{ parameters.environmentName }}' `
+                    --resource-group 'rg-platform-monitoring-${{ parameters.environmentTag }}-$($config.parameters.parLocation.value)-$($config.parameters.parInstance.value)' `
+                    --template-file $(Build.sourcesDirectory)/bicep/services.bicep `
+                    --parameters @$(Build.sourcesDirectory)/params/services.${{ parameters.environmentTag }}.json
                 }
 
           - task: AzureCLI@2
@@ -77,16 +71,10 @@ jobs:
                   --location $config.parameters.parLocation.value `
                   --parameters @params/platform.${{ parameters.environmentTag }}.json
 
-                $deployment = az deployment sub show --name platformMonitoring${{ parameters.environmentName }} 2>$null
-
-                if ($null -ne $deployment) { 
-                  $resourceGroupName = ($deployment | ConvertFrom-Json).properties.outputs.resourceGroupName.value
-
-                  if ($resourceGroupName -ne $null) {
-                    az deployment group what-if `
-                      --name 'servicesMonitoring${{ parameters.environmentName }}' `
-                      --resource-group $resourceGroupName `
-                      --template-file $(Build.sourcesDirectory)/bicep/services.bicep `
-                      --parameters @$(Build.sourcesDirectory)/params/services.${{ parameters.environmentTag }}.json
-                  }
+                if ((az group exists --name 'rg-platform-monitoring-${{ parameters.environmentTag }}-$($config.parameters.parLocation.value)-$($config.parameters.parInstance.value)') -eq $true) {
+                  az deployment group what-if `
+                    --name 'servicesMonitoring${{ parameters.environmentName }}' `
+                    --resource-group 'rg-platform-monitoring-${{ parameters.environmentTag }}-$($config.parameters.parLocation.value)-$($config.parameters.parInstance.value)' `
+                    --template-file $(Build.sourcesDirectory)/bicep/services.bicep `
+                    --parameters @$(Build.sourcesDirectory)/params/services.${{ parameters.environmentTag }}.json
                 }
