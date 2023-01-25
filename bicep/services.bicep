@@ -1,14 +1,17 @@
 targetScope = 'resourceGroup'
 
 // Parameters
-param parLocation string
 param parEnvironment string
+param parLocation string
+param parInstance string
 
 param parTags object
 
 // Variables
-var varDeploymentPrefix = 'servicesMonitoring' //Prevent deployment naming conflicts
-var varAppInsightsName = 'ai-platform-monitoring-${uniqueString(subscription().id)}-${parEnvironment}-${parLocation}'
+var environmentUniqueId = uniqueString('monitoring', parEnvironment, parInstance)
+var varDeploymentPrefix = 'services-${environmentUniqueId}' //Prevent deployment naming conflicts
+
+var varAppInsightsName = 'ai-platform-monitoring-${parEnvironment}-${parLocation}-${parInstance}'
 
 // Existing In-Scope Resources
 resource keyVault 'Microsoft.KeyVault/vaults@2019-09-01' existing = {

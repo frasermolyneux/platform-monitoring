@@ -1,8 +1,9 @@
 targetScope = 'subscription'
 
 // Parameters
-param parLocation string
 param parEnvironment string
+param parLocation string
+param parInstance string
 
 param parDeployPrincipalId string
 
@@ -15,10 +16,12 @@ param parPlatformKeyVaultCreateMode string = 'recover'
 param parTags object
 
 // Variables
-var varDeploymentPrefix = 'platformMonitoring' //Prevent deployment naming conflicts
-var varResourceGroupName = 'rg-platform-monitoring-${uniqueString(subscription().id)}-${parEnvironment}-${parLocation}'
-var varKeyVaultName = 'kv-${uniqueString(subscription().id)}-${parLocation}'
-var varAppInsightsName = 'ai-platform-monitoring-${uniqueString(subscription().id)}-${parEnvironment}-${parLocation}'
+var environmentUniqueId = uniqueString('monitoring', parEnvironment, parInstance)
+var varDeploymentPrefix = 'platform-${environmentUniqueId}' //Prevent deployment naming conflicts
+
+var varResourceGroupName = 'rg-platform-monitoring-${parEnvironment}-${parLocation}-${parInstance}'
+var varKeyVaultName = 'kv-${environmentUniqueId}-${parLocation}'
+var varAppInsightsName = 'ai-platform-monitoring-${parEnvironment}-${parLocation}-${parInstance}'
 
 // Platform
 resource defaultResourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' = {
