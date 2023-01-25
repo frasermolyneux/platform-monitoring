@@ -8,8 +8,8 @@ param parInstance string
 param parTags object
 
 // Variables
-var environmentUniqueId = uniqueString('monitoring', parEnvironment, parInstance)
-var varDeploymentPrefix = 'services-${environmentUniqueId}' //Prevent deployment naming conflicts
+var varEnvironmentUniqueId = uniqueString('monitoring', parEnvironment, parInstance)
+var varDeploymentPrefix = 'services-${varEnvironmentUniqueId}' //Prevent deployment naming conflicts
 
 var varAppInsightsName = 'ai-platform-monitoring-${parEnvironment}-${parLocation}-${parInstance}'
 

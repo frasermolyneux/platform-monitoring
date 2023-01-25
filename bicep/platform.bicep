@@ -16,11 +16,11 @@ param parPlatformKeyVaultCreateMode string = 'recover'
 param parTags object
 
 // Variables
-var environmentUniqueId = uniqueString('monitoring', parEnvironment, parInstance)
-var varDeploymentPrefix = 'platform-${environmentUniqueId}' //Prevent deployment naming conflicts
+var varEnvironmentUniqueId = uniqueString('monitoring', parEnvironment, parInstance)
+var varDeploymentPrefix = 'platform-${varEnvironmentUniqueId}' //Prevent deployment naming conflicts
 
 var varResourceGroupName = 'rg-platform-monitoring-${parEnvironment}-${parLocation}-${parInstance}'
-var varKeyVaultName = 'kv-${environmentUniqueId}-${parLocation}'
+var varKeyVaultName = 'kv-${varEnvironmentUniqueId}-${parLocation}'
 var varAppInsightsName = 'ai-platform-monitoring-${parEnvironment}-${parLocation}-${parInstance}'
 
 // Platform
