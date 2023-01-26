@@ -37,8 +37,14 @@ jobs:
 
                 $deployPrincipalId = (az ad sp show --id $env:servicePrincipalId | ConvertFrom-Json).id
 
-                $keyVaults = az keyvault list --query '[].id' | ConvertFrom-Json
-                $existing = $keyVaults | where {$_ -match 'rg-platform-monitoring-${{ parameters.environmentTag }}-$($config.parameters.parLocation.value)-$($config.parameters.parInstance.value)'}
+                $deletedKeyVaults = az keyvault list-deleted --query '[].properties.vaultId' | ConvertFrom-Json
+                $isDeleted = $deletedKeyVaults | where {$_ -match 'rg-platform-monitoring-${{ parameters.environmentTag }}-$($config.parameters.parLocation.value)-$($config.parameters.parInstance.value)'}
+
+                $keyVaultCreateMode = "default"
+                if ($isDeleted -ne $null) {
+                  # To allow the environments to be torn-down and re-created, the Key Vault Create Mode must be set to 'recover'.
+                  $keyVaultCreateMode = "recover"
+                }
 
                 az deployment sub validate `
                   --name 'platformMonitoring${{ parameters.environmentName }}' `
@@ -68,8 +74,14 @@ jobs:
 
                 $deployPrincipalId = (az ad sp show --id $env:servicePrincipalId | ConvertFrom-Json).id
 
-                $keyVaults = az keyvault list --query '[].id' | ConvertFrom-Json
-                $existing = $keyVaults | where {$_ -match 'rg-platform-monitoring-${{ parameters.environmentTag }}-$($config.parameters.parLocation.value)-$($config.parameters.parInstance.value)'}
+                $deletedKeyVaults = az keyvault list-deleted --query '[].properties.vaultId' | ConvertFrom-Json
+                $isDeleted = $deletedKeyVaults | where {$_ -match 'rg-platform-monitoring-${{ parameters.environmentTag }}-$($config.parameters.parLocation.value)-$($config.parameters.parInstance.value)'}
+
+                $keyVaultCreateMode = "default"
+                if ($isDeleted -ne $null) {
+                  # To allow the environments to be torn-down and re-created, the Key Vault Create Mode must be set to 'recover'.
+                  $keyVaultCreateMode = "recover"
+                }
 
                 az deployment sub what-if `
                   --name 'platformMonitoring${{ parameters.environmentName }}' `
