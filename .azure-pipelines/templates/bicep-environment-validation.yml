@@ -54,7 +54,7 @@ jobs:
                       parKeyVaultCreateMode=$keyVaultCreateMode `
                       parDeployPrincipalId=$deployPrincipalId
 
-                if ((az group exists --name 'rg-platform-monitoring-${{ parameters.environmentTag }}-$($config.parameters.parLocation.value)-$($config.parameters.parInstance.value)') -eq $true) {
+                if ((az group exists --name "rg-platform-monitoring-${{ parameters.environmentTag }}-$($config.parameters.parLocation.value)-$($config.parameters.parInstance.value)") -eq $true) {
                   az deployment group validate `
                     --name 'servicesMonitoring${{ parameters.environmentName }}' `
                     --resource-group 'rg-platform-monitoring-${{ parameters.environmentTag }}-$($config.parameters.parLocation.value)-$($config.parameters.parInstance.value)' `
@@ -91,7 +91,7 @@ jobs:
                       parKeyVaultCreateMode=$keyVaultCreateMode `
                       parDeployPrincipalId=$deployPrincipalId
 
-                if ((az group exists --name 'rg-platform-monitoring-${{ parameters.environmentTag }}-$($config.parameters.parLocation.value)-$($config.parameters.parInstance.value)') -eq $true) {
+                if ((az group exists --name "rg-platform-monitoring-${{ parameters.environmentTag }}-$($config.parameters.parLocation.value)-$($config.parameters.parInstance.value)") -eq $true) {
                   az deployment group what-if `
                     --name 'servicesMonitoring${{ parameters.environmentName }}' `
                     --resource-group 'rg-platform-monitoring-${{ parameters.environmentTag }}-$($config.parameters.parLocation.value)-$($config.parameters.parInstance.value)' `
