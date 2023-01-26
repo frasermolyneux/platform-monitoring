@@ -15,7 +15,7 @@ var varAppInsightsName = 'ai-platform-monitoring-${parEnvironment}-${parLocation
 
 // Existing In-Scope Resources
 resource keyVault 'Microsoft.KeyVault/vaults@2019-09-01' existing = {
-  name: 'kv-${uniqueString(subscription().id)}-${parLocation}'
+  name: 'kv-${varEnvironmentUniqueId}-${parLocation}'
 }
 
 module monitoring 'services/monitoring.bicep' = {
