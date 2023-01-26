@@ -38,7 +38,7 @@ jobs:
                 $deployPrincipalId = (az ad sp show --id $env:servicePrincipalId | ConvertFrom-Json).id
 
                 $deletedKeyVaults = az keyvault list-deleted --query '[].properties.vaultId' | ConvertFrom-Json
-                $isDeleted = $deletedKeyVaults | where {$_ -match 'rg-platform-monitoring-${{ parameters.environmentTag }}-$($config.parameters.parLocation.value)-$($config.parameters.parInstance.value)'}
+                $isDeleted = $deletedKeyVaults | where {$_ -match "rg-platform-monitoring-${{ parameters.environmentTag }}-$($config.parameters.parLocation.value)-$($config.parameters.parInstance.value)"}
 
                 $keyVaultCreateMode = "default"
                 if ($isDeleted -ne $null) {
@@ -75,7 +75,7 @@ jobs:
                 $deployPrincipalId = (az ad sp show --id $env:servicePrincipalId | ConvertFrom-Json).id
 
                 $deletedKeyVaults = az keyvault list-deleted --query '[].properties.vaultId' | ConvertFrom-Json
-                $isDeleted = $deletedKeyVaults | where {$_ -match 'rg-platform-monitoring-${{ parameters.environmentTag }}-$($config.parameters.parLocation.value)-$($config.parameters.parInstance.value)'}
+                $isDeleted = $deletedKeyVaults | where {$_ -match "rg-platform-monitoring-${{ parameters.environmentTag }}-$($config.parameters.parLocation.value)-$($config.parameters.parInstance.value)"}
 
                 $keyVaultCreateMode = "default"
                 if ($isDeleted -ne $null) {
