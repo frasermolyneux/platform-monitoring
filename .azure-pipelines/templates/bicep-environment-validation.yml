@@ -57,7 +57,7 @@ jobs:
                 if ((az group exists --name "rg-platform-monitoring-${{ parameters.environmentTag }}-$($config.parameters.parLocation.value)-$($config.parameters.parInstance.value)") -eq $true) {
                   az deployment group validate `
                     --name 'servicesMonitoring${{ parameters.environmentName }}' `
-                    --resource-group 'rg-platform-monitoring-${{ parameters.environmentTag }}-$($config.parameters.parLocation.value)-$($config.parameters.parInstance.value)' `
+                    --resource-group "rg-platform-monitoring-${{ parameters.environmentTag }}-$($config.parameters.parLocation.value)-$($config.parameters.parInstance.value)" `
                     --template-file $(Build.sourcesDirectory)/bicep/services.bicep `
                     --parameters @$(Build.sourcesDirectory)/params/services.${{ parameters.environmentTag }}.json
                 }
@@ -94,7 +94,7 @@ jobs:
                 if ((az group exists --name "rg-platform-monitoring-${{ parameters.environmentTag }}-$($config.parameters.parLocation.value)-$($config.parameters.parInstance.value)") -eq $true) {
                   az deployment group what-if `
                     --name 'servicesMonitoring${{ parameters.environmentName }}' `
-                    --resource-group 'rg-platform-monitoring-${{ parameters.environmentTag }}-$($config.parameters.parLocation.value)-$($config.parameters.parInstance.value)' `
+                    --resource-group "rg-platform-monitoring-${{ parameters.environmentTag }}-$($config.parameters.parLocation.value)-$($config.parameters.parInstance.value)" `
                     --template-file $(Build.sourcesDirectory)/bicep/services.bicep `
                     --parameters @$(Build.sourcesDirectory)/params/services.${{ parameters.environmentTag }}.json
                 }
