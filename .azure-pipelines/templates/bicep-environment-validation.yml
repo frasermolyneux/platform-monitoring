@@ -8,11 +8,9 @@ parameters:
   type: string
 - name: environmentName
   type: string
-- name: environmentTag
-  type: string
 
 jobs:
-- deployment: ValidateBicepAgainst${{ parameters.environmentName }}Environment
+- deployment: validate_bicep_against_${{ parameters.environmentName }}_environment
   dependsOn: ${{ parameters.dependsOn }}
   environment: ${{ parameters.environment }}
 
@@ -33,12 +31,12 @@ jobs:
               scriptLocation: 'inlineScript'
               addSpnToEnvironment: true
               inlineScript: |
-                $config = (Get-Content $(Build.sourcesDirectory)/params/platform.${{ parameters.environmentTag }}.json | ConvertFrom-Json)
+                $config = (Get-Content ./params/platform.${{ parameters.environmentName }}.json | ConvertFrom-Json)
 
                 $deployPrincipalId = (az ad sp show --id $env:servicePrincipalId | ConvertFrom-Json).id
 
                 $deletedKeyVaults = az keyvault list-deleted --query '[].properties.vaultId' | ConvertFrom-Json
-                $isDeleted = $deletedKeyVaults | where {$_ -match "rg-platform-monitoring-${{ parameters.environmentTag }}-$($config.parameters.parLocation.value)-$($config.parameters.parInstance.value)"}
+                $isDeleted = $deletedKeyVaults | where {$_ -match "rg-platform-monitoring-${{ parameters.environmentName }}-$($config.parameters.parLocation.value)-$($config.parameters.parInstance.value)"}
 
                 $keyVaultCreateMode = "default"
                 if ($isDeleted -ne $null) {
@@ -50,16 +48,16 @@ jobs:
                   --name 'platformMonitoring${{ parameters.environmentName }}' `
                   --template-file bicep/platform.bicep `
                   --location $config.parameters.parLocation.value `
-                  --parameters @params/platform.${{ parameters.environmentTag }}.json `
+                  --parameters @params/platform.${{ parameters.environmentName }}.json `
                       parKeyVaultCreateMode=$keyVaultCreateMode `
                       parDeployPrincipalId=$deployPrincipalId
 
-                if ((az group exists --name "rg-platform-monitoring-${{ parameters.environmentTag }}-$($config.parameters.parLocation.value)-$($config.parameters.parInstance.value)") -eq $true) {
+                if ((az group exists --name "rg-platform-monitoring-${{ parameters.environmentName }}-$($config.parameters.parLocation.value)-$($config.parameters.parInstance.value)") -eq $true) {
                   az deployment group validate `
                     --name 'servicesMonitoring${{ parameters.environmentName }}' `
-                    --resource-group "rg-platform-monitoring-${{ parameters.environmentTag }}-$($config.parameters.parLocation.value)-$($config.parameters.parInstance.value)" `
-                    --template-file $(Build.sourcesDirectory)/bicep/services.bicep `
-                    --parameters @$(Build.sourcesDirectory)/params/services.${{ parameters.environmentTag }}.json
+                    --resource-group "rg-platform-monitoring-${{ parameters.environmentName }}-$($config.parameters.parLocation.value)-$($config.parameters.parInstance.value)" `
+                    --template-file ./bicep/services.bicep `
+                    --parameters @params/services.${{ parameters.environmentName }}.json
                 }
 
           - task: AzureCLI@2
@@ -70,12 +68,12 @@ jobs:
               scriptLocation: 'inlineScript'
               addSpnToEnvironment: true
               inlineScript: |
-                $config = (Get-Content $(Build.sourcesDirectory)/params/platform.${{ parameters.environmentTag }}.json | ConvertFrom-Json)
+                $config = (Get-Content ./params/platform.${{ parameters.environmentName }}.json | ConvertFrom-Json)
 
                 $deployPrincipalId = (az ad sp show --id $env:servicePrincipalId | ConvertFrom-Json).id
 
                 $deletedKeyVaults = az keyvault list-deleted --query '[].properties.vaultId' | ConvertFrom-Json
-                $isDeleted = $deletedKeyVaults | where {$_ -match "rg-platform-monitoring-${{ parameters.environmentTag }}-$($config.parameters.parLocation.value)-$($config.parameters.parInstance.value)"}
+                $isDeleted = $deletedKeyVaults | where {$_ -match "rg-platform-monitoring-${{ parameters.environmentName }}-$($config.parameters.parLocation.value)-$($config.parameters.parInstance.value)"}
 
                 $keyVaultCreateMode = "default"
                 if ($isDeleted -ne $null) {
@@ -87,14 +85,14 @@ jobs:
                   --name 'platformMonitoring${{ parameters.environmentName }}' `
                   --template-file bicep/platform.bicep `
                   --location $config.parameters.parLocation.value `
-                  --parameters @params/platform.${{ parameters.environmentTag }}.json `
+                  --parameters @params/platform.${{ parameters.environmentName }}.json `
                       parKeyVaultCreateMode=$keyVaultCreateMode `
                       parDeployPrincipalId=$deployPrincipalId
 
-                if ((az group exists --name "rg-platform-monitoring-${{ parameters.environmentTag }}-$($config.parameters.parLocation.value)-$($config.parameters.parInstance.value)") -eq $true) {
+                if ((az group exists --name "rg-platform-monitoring-${{ parameters.environmentName }}-$($config.parameters.parLocation.value)-$($config.parameters.parInstance.value)") -eq $true) {
                   az deployment group what-if `
                     --name 'servicesMonitoring${{ parameters.environmentName }}' `
-                    --resource-group "rg-platform-monitoring-${{ parameters.environmentTag }}-$($config.parameters.parLocation.value)-$($config.parameters.parInstance.value)" `
-                    --template-file $(Build.sourcesDirectory)/bicep/services.bicep `
-                    --parameters @$(Build.sourcesDirectory)/params/services.${{ parameters.environmentTag }}.json
+                    --resource-group "rg-platform-monitoring-${{ parameters.environmentName }}-$($config.parameters.parLocation.value)-$($config.parameters.parInstance.value)" `
+                    --template-file ./bicep/services.bicep `
+                    --parameters @params/services.${{ parameters.environmentName }}.json
                 }
