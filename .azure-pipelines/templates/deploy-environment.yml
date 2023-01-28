@@ -50,8 +50,8 @@ stages:
                       parKeyVaultCreateMode=$keyVaultCreateMode `
                       parDeployPrincipalId=$deployPrincipalId
 
-  - deployment: Deploy${{ parameters.environmentName }}ServicesBicep
-    dependsOn: ['Deploy${{ parameters.environmentName }}PlatformBicep']
+  - deployment: deploy_${{ parameters.environmentName }}_services
+    dependsOn: ['deploy_${{ parameters.environmentName }}_platform']
     environment: ${{ parameters.environment }}
 
     strategy:
@@ -61,7 +61,7 @@ stages:
             - checkout: self
             
             - task: AzureCLI@2
-              displayName: Deploy${{ parameters.environmentName }}ServicesBicep
+              displayName: deploy_${{ parameters.environmentName }}_services_bicep
               inputs:
                 azureSubscription: ${{ parameters.azureSubscription }}
                 scriptType: 'pscore'
