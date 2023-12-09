@@ -1,6 +1,12 @@
 # Platform Monitoring
 
-[![Build Status](https://dev.azure.com/frasermolyneux/Personal-Public/_apis/build/status/platform-monitoring.OnePipeline?repoName=frasermolyneux%2Fplatform-monitoring&branchName=main)](https://dev.azure.com/frasermolyneux/Personal-Public/_build/latest?definitionId=174&repoName=frasermolyneux%2Fplatform-monitoring&branchName=main)
+| Stage                  | Status                                                                                                                                                                                                                                                                                                                                                             |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| DevOps Secure Scanning | [![Build Status](https://dev.azure.com/frasermolyneux/Personal-Public/_apis/build/status%2Fplatform-monitoring.DevOpsSecureScanning?branchName=main)](https://dev.azure.com/frasermolyneux/Personal-Public/_build/latest?definitionId=207&branchName=main)                                                                                                         |
+| Build                  | [![Build Status](https://dev.azure.com/frasermolyneux/Personal-Public/_apis/build/status%2Fplatform-monitoring.OnePipeline?repoName=frasermolyneux%2Fplatform-monitoring&branchName=main&stageName=build)](https://dev.azure.com/frasermolyneux/Personal-Public/_build/latest?definitionId=174&repoName=frasermolyneux%2Fplatform-monitoring&branchName=main)      |
+| Release to Production  | [![Build Status](https://dev.azure.com/frasermolyneux/Personal-Public/_apis/build/status%2Fplatform-monitoring.OnePipeline?repoName=frasermolyneux%2Fplatform-monitoring&branchName=main&stageName=deploy_prd)](https://dev.azure.com/frasermolyneux/Personal-Public/_build/latest?definitionId=174&repoName=frasermolyneux%2Fplatform-monitoring&branchName=main) |
+
+---
 
 ## Documentation
 
