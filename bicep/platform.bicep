@@ -62,9 +62,9 @@ module keyVaultSecretUserRoleAssignment 'modules/keyVaultRoleAssignment.bicep' =
   scope: resourceGroup(defaultResourceGroup.name)
 
   params: {
-    parKeyVaultName: keyVault.outputs.outKeyVaultName
-    parRoleDefinitionId: keyVaultSecretsOfficerRoleDefinition.id
-    parPrincipalId: parDeployPrincipalId
+    keyVaultName: keyVault.outputs.outKeyVaultName
+    principalId: parDeployPrincipalId
+    roleDefinitionId: keyVaultSecretsOfficerRoleDefinition.id
   }
 }
 
