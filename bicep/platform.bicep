@@ -20,7 +20,7 @@ param tags object
 
 // Variables
 var environmentUniqueId = uniqueString('monitoring', environment, instance)
-var varDeploymentPrefix = 'platform-${environmentUniqueId}' //Prevent deployment naming conflicts
+var deploymentPrefix = 'platform-${environmentUniqueId}' //Prevent deployment naming conflicts
 
 var resourceGroupName = 'rg-platform-monitoring-${environment}-${location}-${instance}'
 var keyVaultName = 'kv-${environmentUniqueId}-${location}'
@@ -36,7 +36,7 @@ resource defaultResourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' = 
 }
 
 module keyVault 'modules/keyVault.bicep' = {
-  name: '${varDeploymentPrefix}-keyVault'
+  name: '${deploymentPrefix}-keyVault'
   scope: resourceGroup(defaultResourceGroup.name)
 
   params: {
@@ -61,7 +61,7 @@ resource keyVaultSecretsOfficerRoleDefinition 'Microsoft.Authorization/roleDefin
 }
 
 module keyVaultSecretUserRoleAssignment 'modules/keyVaultRoleAssignment.bicep' = {
-  name: '${varDeploymentPrefix}-keyVaultSecretUserRoleAssignment'
+  name: '${deploymentPrefix}-keyVaultSecretUserRoleAssignment'
   scope: resourceGroup(defaultResourceGroup.name)
 
   params: {
@@ -72,7 +72,7 @@ module keyVaultSecretUserRoleAssignment 'modules/keyVaultRoleAssignment.bicep' =
 }
 
 module appInsights 'modules/appInsights.bicep' = {
-  name: '${varDeploymentPrefix}-appInsights'
+  name: '${deploymentPrefix}-appInsights'
   scope: resourceGroup(defaultResourceGroup.name)
 
   params: {

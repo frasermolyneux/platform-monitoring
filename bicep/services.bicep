@@ -12,7 +12,7 @@ param tags object
 
 // Variables
 var environmentUniqueId = uniqueString('monitoring', environment, instance)
-var varDeploymentPrefix = 'services-${environmentUniqueId}' //Prevent deployment naming conflicts
+var deploymentPrefix = 'services-${environmentUniqueId}' //Prevent deployment naming conflicts
 
 var varAppInsightsName = 'ai-platform-monitoring-${environment}-${location}-${instance}'
 
@@ -22,10 +22,10 @@ resource keyVault 'Microsoft.KeyVault/vaults@2019-09-01' existing = {
 }
 
 module monitoring 'services/monitoring.bicep' = {
-  name: '${varDeploymentPrefix}-monitoring'
+  name: '${deploymentPrefix}-monitoring'
 
   params: {
-    deploymentPrefix: varDeploymentPrefix
+    deploymentPrefix: deploymentPrefix
 
     appInsightsName: varAppInsightsName
 
