@@ -1,34 +1,37 @@
 targetScope = 'resourceGroup'
 
 // Parameters
-param parKeyVaultName string
-param parLocation string
-param parTags object
+@description('The key vault resource name')
+param keyVaultName string
+
+@description('The location to deploy the resources')
+param location string
+param tags object
 
 @description('Must be set to "default" if the Key Vault does not exist. Setting to "recover" avoids the accessPolicies being wiped each time.')
-param parKeyVaultCreateMode string = 'recover'
+param keyVaultCreateMode string = 'recover'
 
-param parEnabledForDeployment bool = false
-param parEnabledForTemplateDeployment bool = false
+param enabledForDeployment bool = false
+param enabledForTemplateDeployment bool = false
 
-param parEnabledForRbacAuthorization bool = false
+param enabledForRbacAuthorization bool = false
 
-param parSoftDeleteRetentionInDays int = 90
+param softDeleteRetentionInDays int = 90
 
 // Module Resources
 resource keyVault 'Microsoft.KeyVault/vaults@2021-11-01-preview' = {
-  name: parKeyVaultName
-  location: parLocation
-  tags: parTags
+  name: keyVaultName
+  location: location
+  tags: tags
 
   properties: {
     accessPolicies: []
-    createMode: parKeyVaultCreateMode
+    createMode: keyVaultCreateMode
 
     enablePurgeProtection: true
-    enableRbacAuthorization: parEnabledForRbacAuthorization
-    enabledForDeployment: parEnabledForDeployment
-    enabledForTemplateDeployment: parEnabledForTemplateDeployment
+    enableRbacAuthorization: enabledForRbacAuthorization
+    enabledForDeployment: enabledForDeployment
+    enabledForTemplateDeployment: enabledForTemplateDeployment
 
     networkAcls: {
       bypass: 'AzureServices'
@@ -40,7 +43,7 @@ resource keyVault 'Microsoft.KeyVault/vaults@2021-11-01-preview' = {
       name: 'standard'
     }
 
-    softDeleteRetentionInDays: parSoftDeleteRetentionInDays
+    softDeleteRetentionInDays: softDeleteRetentionInDays
 
     tenantId: tenant().tenantId
   }

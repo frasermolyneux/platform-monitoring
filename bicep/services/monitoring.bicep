@@ -2,24 +2,26 @@ targetScope = 'resourceGroup'
 
 // Parameters
 
-param parDeploymentPrefix string
+param deploymentPrefix string
 
-param parAppInsightsName string
+@description('The app insights resource name')
+param appInsightsName string
 
 @secure()
-param parAlertEmail string
+param alertEmail string
 @secure()
-param parAlertPhone string
+param alertPhone string
 @secure()
-param parXtremeIdiotsTaskKey string
+param xtremeIdiotsTaskKey string
 
-param parLocation string
+@description('The location to deploy the resources')
+param location string
 
-param parTags object
+param tags object
 
 // Existing In-Scope Resources
 resource appInsights 'Microsoft.Insights/components@2020-02-02' existing = {
-  name: parAppInsightsName
+  name: appInsightsName
 }
 
 // Module Resources
@@ -34,7 +36,7 @@ resource criticalActionGroup 'microsoft.insights/actionGroups@2022-06-01' = {
     emailReceivers: [
       {
         name: 'EmailAndText_-EmailAction-'
-        emailAddress: parAlertEmail
+        emailAddress: alertEmail
         useCommonAlertSchema: false
       }
     ]
@@ -43,7 +45,7 @@ resource criticalActionGroup 'microsoft.insights/actionGroups@2022-06-01' = {
       {
         name: 'EmailAndText_-SMSAction-'
         countryCode: '44'
-        phoneNumber: parAlertPhone
+        phoneNumber: alertPhone
       }
     ]
 
@@ -70,7 +72,7 @@ resource warningActionGroup 'microsoft.insights/actionGroups@2022-06-01' = {
     emailReceivers: [
       {
         name: 'EmailOnly_-EmailAction-'
-        emailAddress: parAlertEmail
+        emailAddress: alertEmail
         useCommonAlertSchema: false
       }
     ]
@@ -89,120 +91,120 @@ resource warningActionGroup 'microsoft.insights/actionGroups@2022-06-01' = {
 }
 
 module xtremeidiotsComWebTest './../modules/webTest.bicep' = {
-  name: '${parDeploymentPrefix}-xtremeidiotsComWebTest'
+  name: '${deploymentPrefix}-xtremeidiotsComWebTest'
 
   params: {
-    parLocation: parLocation
+    location: location
 
-    parAppInsightsName: appInsights.name
-    parWorkloadName: 'xtremeidiotsForums'
-    parWorkloadUrl: 'https://www.xtremeidiots.com'
+    appInsightsName: appInsights.name
+    workloadName: 'xtremeidiotsForums'
+    workloadUrl: 'https://www.xtremeidiots.com'
 
-    parActionGroupName: criticalActionGroup.name
-    parSeverity: 0
+    actionGroupName: criticalActionGroup.name
+    severity: 0
 
-    parTags: parTags
+    tags: tags
   }
 }
 
 module xtremeidiotsComTaskWebTest './../modules/webTest.bicep' = {
-  name: '${parDeploymentPrefix}-xtremeidiotsComTaskWebTest'
+  name: '${deploymentPrefix}-xtremeidiotsComTaskWebTest'
 
   params: {
-    parLocation: parLocation
+    location: location
 
-    parAppInsightsName: appInsights.name
-    parWorkloadName: 'xtremeidiotsForumsTask'
-    parWorkloadUrl: 'https://www.xtremeidiots.com/applications/core/interface/task/web.php?key=${parXtremeIdiotsTaskKey}'
+    appInsightsName: appInsights.name
+    workloadName: 'xtremeidiotsForumsTask'
+    workloadUrl: 'https://www.xtremeidiots.com/applications/core/interface/task/web.php?key=${xtremeIdiotsTaskKey}'
 
-    parActionGroupName: criticalActionGroup.name
-    parSeverity: 1
+    actionGroupName: criticalActionGroup.name
+    severity: 1
 
-    parTags: parTags
+    tags: tags
   }
 }
 
 module redirectXtremeIdiotsNetWebTest './../modules/webTest.bicep' = {
-  name: '${parDeploymentPrefix}-redirectXtremeIdiotsNetWebTest'
+  name: '${deploymentPrefix}-redirectXtremeIdiotsNetWebTest'
 
   params: {
-    parLocation: parLocation
+    location: location
 
-    parAppInsightsName: appInsights.name
-    parWorkloadName: 'xtremeidiotsRedirect'
-    parWorkloadUrl: 'https://redirect.xtremeidiots.net'
+    appInsightsName: appInsights.name
+    workloadName: 'xtremeidiotsRedirect'
+    workloadUrl: 'https://redirect.xtremeidiots.net'
 
-    parActionGroupName: criticalActionGroup.name
-    parSeverity: 1
+    actionGroupName: criticalActionGroup.name
+    severity: 1
 
-    parTags: parTags
+    tags: tags
   }
 }
 
 module sourcebansXtremeIdiotsNetWebTest './../modules/webTest.bicep' = {
-  name: '${parDeploymentPrefix}-sourcebansXtremeIdiotsNetWebTest'
+  name: '${deploymentPrefix}-sourcebansXtremeIdiotsNetWebTest'
 
   params: {
-    parLocation: parLocation
+    location: location
 
-    parAppInsightsName: appInsights.name
-    parWorkloadName: 'xtremeidiotsSourceBans'
-    parWorkloadUrl: 'https://sourcebans.xtremeidiots.net'
+    appInsightsName: appInsights.name
+    workloadName: 'xtremeidiotsSourceBans'
+    workloadUrl: 'https://sourcebans.xtremeidiots.net'
 
-    parActionGroupName: warningActionGroup.name
-    parSeverity: 2
+    actionGroupName: warningActionGroup.name
+    severity: 2
 
-    parTags: parTags
+    tags: tags
   }
 }
 
 module tcadminXtremeIdiotsComWebTest './../modules/webTest.bicep' = {
-  name: '${parDeploymentPrefix}-tcadminXtremeIdiotsComWebTest'
+  name: '${deploymentPrefix}-tcadminXtremeIdiotsComWebTest'
 
   params: {
-    parLocation: parLocation
+    location: location
 
-    parAppInsightsName: appInsights.name
-    parWorkloadName: 'xtremeidiotsTcAdmin'
-    parWorkloadUrl: 'https://tcadmin.xtremeidiots.com'
+    appInsightsName: appInsights.name
+    workloadName: 'xtremeidiotsTcAdmin'
+    workloadUrl: 'https://tcadmin.xtremeidiots.com'
 
-    parActionGroupName: criticalActionGroup.name
-    parSeverity: 1
+    actionGroupName: criticalActionGroup.name
+    severity: 1
 
-    parTags: parTags
+    tags: tags
   }
 }
 
 module bishopsBeesCoUkWebTest './../modules/webTest.bicep' = {
-  name: '${parDeploymentPrefix}-bishopsBeesCoUkWebTest'
+  name: '${deploymentPrefix}-bishopsBeesCoUkWebTest'
 
   params: {
-    parLocation: parLocation
+    location: location
 
-    parAppInsightsName: appInsights.name
-    parWorkloadName: 'bishopsBees'
-    parWorkloadUrl: 'https://bishopsbees.co.uk'
+    appInsightsName: appInsights.name
+    workloadName: 'bishopsBees'
+    workloadUrl: 'https://bishopsbees.co.uk'
 
-    parActionGroupName: criticalActionGroup.name
-    parSeverity: 1
+    actionGroupName: criticalActionGroup.name
+    severity: 1
 
-    parTags: parTags
+    tags: tags
   }
 }
 
 module molyneuxMeWebTest './../modules/webTest.bicep' = {
-  name: '${parDeploymentPrefix}-molyneuxMeWebTest'
+  name: '${deploymentPrefix}-molyneuxMeWebTest'
 
   params: {
-    parLocation: parLocation
+    location: location
 
-    parAppInsightsName: appInsights.name
-    parWorkloadName: 'molyneuxMe'
-    parWorkloadUrl: 'https://molyneux.me'
+    appInsightsName: appInsights.name
+    workloadName: 'molyneuxMe'
+    workloadUrl: 'https://molyneux.me'
 
-    parActionGroupName: warningActionGroup.name
-    parSeverity: 1
+    actionGroupName: warningActionGroup.name
+    severity: 1
 
-    parTags: parTags
+    tags: tags
   }
 }

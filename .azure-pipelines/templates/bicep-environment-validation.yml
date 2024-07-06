@@ -36,7 +36,7 @@ jobs:
                 $deployPrincipalId = (az ad sp show --id $env:servicePrincipalId | ConvertFrom-Json).id
 
                 $deletedKeyVaults = az keyvault list-deleted --query '[].properties.vaultId' | ConvertFrom-Json
-                $isDeleted = $deletedKeyVaults | where {$_ -match "rg-platform-monitoring-${{ parameters.environmentName }}-$($config.parameters.parLocation.value)-$($config.parameters.parInstance.value)"}
+                $isDeleted = $deletedKeyVaults | where {$_ -match "rg-platform-monitoring-${{ parameters.environmentName }}-$($config.parameters.location.value)-$($config.parameters.instance.value)"}
 
                 $keyVaultCreateMode = "default"
                 if ($isDeleted -ne $null) {
@@ -47,15 +47,15 @@ jobs:
                 az deployment sub validate `
                   --name 'platformMonitoring${{ parameters.environmentName }}' `
                   --template-file bicep/platform.bicep `
-                  --location $config.parameters.parLocation.value `
+                  --location $config.parameters.location.value `
                   --parameters @params/platform.${{ parameters.environmentName }}.json `
-                      parKeyVaultCreateMode=$keyVaultCreateMode `
-                      parDeployPrincipalId=$deployPrincipalId
+                      keyVaultCreateMode=$keyVaultCreateMode `
+                      deployPrincipalId=$deployPrincipalId
 
-                if ((az group exists --name "rg-platform-monitoring-${{ parameters.environmentName }}-$($config.parameters.parLocation.value)-$($config.parameters.parInstance.value)") -eq $true) {
+                if ((az group exists --name "rg-platform-monitoring-${{ parameters.environmentName }}-$($config.parameters.location.value)-$($config.parameters.instance.value)") -eq $true) {
                   az deployment group validate `
                     --name 'servicesMonitoring${{ parameters.environmentName }}' `
-                    --resource-group "rg-platform-monitoring-${{ parameters.environmentName }}-$($config.parameters.parLocation.value)-$($config.parameters.parInstance.value)" `
+                    --resource-group "rg-platform-monitoring-${{ parameters.environmentName }}-$($config.parameters.location.value)-$($config.parameters.instance.value)" `
                     --template-file ./bicep/services.bicep `
                     --parameters @params/services.${{ parameters.environmentName }}.json
                 }
@@ -73,7 +73,7 @@ jobs:
                 $deployPrincipalId = (az ad sp show --id $env:servicePrincipalId | ConvertFrom-Json).id
 
                 $deletedKeyVaults = az keyvault list-deleted --query '[].properties.vaultId' | ConvertFrom-Json
-                $isDeleted = $deletedKeyVaults | where {$_ -match "rg-platform-monitoring-${{ parameters.environmentName }}-$($config.parameters.parLocation.value)-$($config.parameters.parInstance.value)"}
+                $isDeleted = $deletedKeyVaults | where {$_ -match "rg-platform-monitoring-${{ parameters.environmentName }}-$($config.parameters.location.value)-$($config.parameters.instance.value)"}
 
                 $keyVaultCreateMode = "default"
                 if ($isDeleted -ne $null) {
@@ -84,15 +84,15 @@ jobs:
                 az deployment sub what-if `
                   --name 'platformMonitoring${{ parameters.environmentName }}' `
                   --template-file bicep/platform.bicep `
-                  --location $config.parameters.parLocation.value `
+                  --location $config.parameters.location.value `
                   --parameters @params/platform.${{ parameters.environmentName }}.json `
-                      parKeyVaultCreateMode=$keyVaultCreateMode `
-                      parDeployPrincipalId=$deployPrincipalId
+                      keyVaultCreateMode=$keyVaultCreateMode `
+                      deployPrincipalId=$deployPrincipalId
 
-                if ((az group exists --name "rg-platform-monitoring-${{ parameters.environmentName }}-$($config.parameters.parLocation.value)-$($config.parameters.parInstance.value)") -eq $true) {
+                if ((az group exists --name "rg-platform-monitoring-${{ parameters.environmentName }}-$($config.parameters.location.value)-$($config.parameters.instance.value)") -eq $true) {
                   az deployment group what-if `
                     --name 'servicesMonitoring${{ parameters.environmentName }}' `
-                    --resource-group "rg-platform-monitoring-${{ parameters.environmentName }}-$($config.parameters.parLocation.value)-$($config.parameters.parInstance.value)" `
+                    --resource-group "rg-platform-monitoring-${{ parameters.environmentName }}-$($config.parameters.location.value)-$($config.parameters.instance.value)" `
                     --template-file ./bicep/services.bicep `
                     --parameters @params/services.${{ parameters.environmentName }}.json
                 }

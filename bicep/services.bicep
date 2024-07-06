@@ -1,36 +1,39 @@
 targetScope = 'resourceGroup'
 
 // Parameters
-param parEnvironment string
-param parLocation string
-param parInstance string
+@description('The environment for the resources')
+param environment string
 
-param parTags object
+@description('The location to deploy the resources')
+param location string
+param instance string
+
+param tags object
 
 // Variables
-var varEnvironmentUniqueId = uniqueString('monitoring', parEnvironment, parInstance)
-var varDeploymentPrefix = 'services-${varEnvironmentUniqueId}' //Prevent deployment naming conflicts
+var environmentUniqueId = uniqueString('monitoring', environment, instance)
+var varDeploymentPrefix = 'services-${environmentUniqueId}' //Prevent deployment naming conflicts
 
-var varAppInsightsName = 'ai-platform-monitoring-${parEnvironment}-${parLocation}-${parInstance}'
+var varAppInsightsName = 'ai-platform-monitoring-${environment}-${location}-${instance}'
 
 // Existing In-Scope Resources
 resource keyVault 'Microsoft.KeyVault/vaults@2019-09-01' existing = {
-  name: 'kv-${varEnvironmentUniqueId}-${parLocation}'
+  name: 'kv-${environmentUniqueId}-${location}'
 }
 
 module monitoring 'services/monitoring.bicep' = {
   name: '${varDeploymentPrefix}-monitoring'
 
   params: {
-    parDeploymentPrefix: varDeploymentPrefix
+    deploymentPrefix: varDeploymentPrefix
 
-    parAppInsightsName: varAppInsightsName
+    appInsightsName: varAppInsightsName
 
-    parAlertEmail: keyVault.getSecret('alert-email')
-    parAlertPhone: keyVault.getSecret('alert-phone')
-    parXtremeIdiotsTaskKey: keyVault.getSecret('xtremeidiots-task-key')
+    alertEmail: keyVault.getSecret('alert-email')
+    alertPhone: keyVault.getSecret('alert-phone')
+    xtremeIdiotsTaskKey: keyVault.getSecret('xtremeidiots-task-key')
 
-    parLocation: parLocation
-    parTags: parTags
+    location: location
+    tags: tags
   }
 }

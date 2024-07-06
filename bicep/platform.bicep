@@ -1,33 +1,36 @@
 targetScope = 'subscription'
 
 // Parameters
-param parEnvironment string
-param parLocation string
-param parInstance string
+@description('The environment for the resources')
+param environment string
 
-param parDeployPrincipalId string
+@description('The location to deploy the resources')
+param location string
+param instance string
 
-param parLoggingSubscriptionId string
-param parLoggingResourceGroupName string
-param parLoggingWorkspaceName string
+param deployPrincipalId string
 
-param parKeyVaultCreateMode string = 'recover'
+param loggingSubscriptionId string
+param loggingResourceGroupName string
+param loggingWorkspaceName string
 
-param parTags object
+param keyVaultCreateMode string = 'recover'
+
+param tags object
 
 // Variables
-var varEnvironmentUniqueId = uniqueString('monitoring', parEnvironment, parInstance)
-var varDeploymentPrefix = 'platform-${varEnvironmentUniqueId}' //Prevent deployment naming conflicts
+var environmentUniqueId = uniqueString('monitoring', environment, instance)
+var varDeploymentPrefix = 'platform-${environmentUniqueId}' //Prevent deployment naming conflicts
 
-var varResourceGroupName = 'rg-platform-monitoring-${parEnvironment}-${parLocation}-${parInstance}'
-var varKeyVaultName = 'kv-${varEnvironmentUniqueId}-${parLocation}'
-var varAppInsightsName = 'ai-platform-monitoring-${parEnvironment}-${parLocation}-${parInstance}'
+var resourceGroupName = 'rg-platform-monitoring-${environment}-${location}-${instance}'
+var keyVaultName = 'kv-${environmentUniqueId}-${location}'
+var varAppInsightsName = 'ai-platform-monitoring-${environment}-${location}-${instance}'
 
 // Platform
 resource defaultResourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' = {
-  name: varResourceGroupName
-  location: parLocation
-  tags: parTags
+  name: resourceGroupName
+  location: location
+  tags: tags
 
   properties: {}
 }
@@ -37,17 +40,17 @@ module keyVault 'modules/keyVault.bicep' = {
   scope: resourceGroup(defaultResourceGroup.name)
 
   params: {
-    parKeyVaultName: varKeyVaultName
-    parLocation: parLocation
+    keyVaultName: keyVaultName
+    location: location
 
-    parKeyVaultCreateMode: parKeyVaultCreateMode
-    parEnabledForDeployment: true
-    parEnabledForTemplateDeployment: true
-    parEnabledForRbacAuthorization: true
+    keyVaultCreateMode: keyVaultCreateMode
+    enabledForDeployment: true
+    enabledForTemplateDeployment: true
+    enabledForRbacAuthorization: true
 
-    parSoftDeleteRetentionInDays: 30
+    softDeleteRetentionInDays: 30
 
-    parTags: parTags
+    tags: tags
   }
 }
 
@@ -63,7 +66,7 @@ module keyVaultSecretUserRoleAssignment 'modules/keyVaultRoleAssignment.bicep' =
 
   params: {
     keyVaultName: keyVault.outputs.outKeyVaultName
-    principalId: parDeployPrincipalId
+    principalId: deployPrincipalId
     roleDefinitionId: keyVaultSecretsOfficerRoleDefinition.id
   }
 }
@@ -73,12 +76,12 @@ module appInsights 'modules/appInsights.bicep' = {
   scope: resourceGroup(defaultResourceGroup.name)
 
   params: {
-    parAppInsightsName: varAppInsightsName
-    parLocation: parLocation
-    parLoggingSubscriptionId: parLoggingSubscriptionId
-    parLoggingResourceGroupName: parLoggingResourceGroupName
-    parLoggingWorkspaceName: parLoggingWorkspaceName
-    parTags: parTags
+    appInsightsName: varAppInsightsName
+    location: location
+    loggingSubscriptionId: loggingSubscriptionId
+    loggingResourceGroupName: loggingResourceGroupName
+    loggingWorkspaceName: loggingWorkspaceName
+    tags: tags
   }
 }
 
