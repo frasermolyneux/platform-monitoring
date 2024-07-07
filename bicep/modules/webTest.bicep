@@ -2,7 +2,7 @@ targetScope = 'resourceGroup'
 
 // Parameters
 @description('The location to deploy the resources')
-param location string
+param location string = resourceGroup().location
 
 @description('The app insights resource name')
 param appInsightsName string

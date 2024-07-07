@@ -5,7 +5,8 @@ targetScope = 'resourceGroup'
 param appInsightsName string
 
 @description('The location to deploy the resources')
-param location string
+param location string = resourceGroup().location
+
 param loggingSubscriptionId string
 param loggingResourceGroupName string
 param loggingWorkspaceName string

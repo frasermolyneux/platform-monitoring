@@ -5,7 +5,8 @@ targetScope = 'resourceGroup'
 param environment string
 
 @description('The location to deploy the resources')
-param location string
+param location string = resourceGroup().location
+
 param instance string
 
 param tags object

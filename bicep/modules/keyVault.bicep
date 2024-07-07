@@ -5,7 +5,8 @@ targetScope = 'resourceGroup'
 param keyVaultName string
 
 @description('The location to deploy the resources')
-param location string
+param location string = resourceGroup().location
+
 param tags object
 
 @description('Must be set to "default" if the Key Vault does not exist. Setting to "recover" avoids the accessPolicies being wiped each time.')
