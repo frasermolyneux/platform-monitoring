@@ -117,7 +117,7 @@ app_service_plan = {
 
 tags = {
   Environment = "prd",
-  Workload    = "platform",
+  Workload    = "platform-monitoring",
   DeployedBy  = "GitHub-Terraform",
-  Git         = "https://github.com/frasermolyneux/platform-monitoring-func"
+  Git         = "https://github.com/frasermolyneux/platform-monitoring"
 }

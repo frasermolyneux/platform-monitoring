@@ -6,7 +6,7 @@ resource "azurerm_monitor_activity_log_alert" "subscription_service_health_alert
   resource_group_name = azurerm_resource_group.rg[var.locations[0]].name
   location            = var.locations[0]
 
-  scopes      = each.value.subscription_id
+  scopes      = [each.value.subscription_id]
   description = "Platform service health alert for ${each.key} subscription"
 
   criteria {
@@ -16,5 +16,7 @@ resource "azurerm_monitor_activity_log_alert" "subscription_service_health_alert
   tags = {
     Environment = var.environment
     Workload    = each.key
+    DeployedBy  = var.tags.DeployedBy
+    Git         = var.tags.Git
   }
 }

@@ -80,7 +80,7 @@ app_service_plan = {
 
 tags = {
   Environment = "dev",
-  Workload    = "platform",
+  Workload    = "platform-monitoring",
   DeployedBy  = "GitHub-Terraform",
-  Git         = "https://github.com/frasermolyneux/platform-monitoring-func"
+  Git         = "https://github.com/frasermolyneux/platform-monitoring"
 }
