@@ -9,6 +9,13 @@ variable "locations" {
 
 variable "subscription_id" {}
 
+variable "subscriptions" {
+  type = map(object({
+    name            = string
+    subscription_id = string
+  }))
+}
+
 variable "geolocation_app_insights" {
   type = object({
     subscription_id     = string
