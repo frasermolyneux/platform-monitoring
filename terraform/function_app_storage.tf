@@ -13,6 +13,8 @@ resource "azurerm_storage_account" "function_app_storage" {
   https_traffic_only_enabled = true
   min_tls_version            = "TLS1_2"
 
+  allow_nested_items_to_be_public = false
+
   local_user_enabled        = true
   shared_access_key_enabled = true
 
