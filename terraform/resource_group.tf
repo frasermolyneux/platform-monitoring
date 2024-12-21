@@ -1,6 +1,8 @@
 resource "azurerm_resource_group" "rg" {
-  name     = "rg-platform-monitoring-${var.environment}-${var.location}-${var.instance}"
-  location = var.location
+  for_each = toset(var.locations)
+
+  name     = "rg-platform-monitoring-${var.environment}-${each.value}"
+  location = each.value
 
   tags = var.tags
 }
