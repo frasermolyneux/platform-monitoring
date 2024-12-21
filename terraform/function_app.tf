@@ -13,7 +13,8 @@ resource "azurerm_linux_function_app" "app" {
   storage_account_access_key = azurerm_storage_account.function_app_storage[each.value].primary_access_key
   //storage_uses_managed_identity = false
 
-  https_only = true
+  https_only                    = true
+  public_network_access_enabled = false
 
   functions_extension_version = "~4"
 
