@@ -18,5 +18,9 @@ resource "azurerm_storage_account" "function_app_storage" {
   local_user_enabled        = true
   shared_access_key_enabled = true
 
+  identity {
+    type = "SystemAssigned"
+  }
+
   tags = var.tags
 }
