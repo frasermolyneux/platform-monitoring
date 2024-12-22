@@ -148,7 +148,7 @@ availability_tests = [
     environment  = "prd"
     app          = "tcadmin.xtremeidiots.com"
     app_insights = "default"
-    uri          = "https://tcadmin.xtremeidiots.com"
+    uri          = "https://tcadmin.xtremeidiots.com/Login"
     severity     = 1
   },
   {
@@ -160,7 +160,7 @@ availability_tests = [
     severity     = 0
   },
   {
-    workload     = "molyneux.me"
+    workload     = "molyneux-me"
     environment  = "prd"
     app          = "molyneux.me"
     app_insights = "default"

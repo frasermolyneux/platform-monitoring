@@ -88,7 +88,7 @@ availability_tests = [
     severity     = 4
   },
   {
-    workload     = "dev.molyneux.me"
+    workload     = "molyneux-me"
     environment  = "dev"
     app          = "dev.molyneux.me"
     app_insights = "default"
