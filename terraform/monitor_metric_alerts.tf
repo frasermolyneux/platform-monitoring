@@ -4,7 +4,7 @@ resource "azurerm_monitor_metric_alert" "availability" {
   name = "workload - ${each.key} - availability"
 
   resource_group_name = azurerm_resource_group.rg[var.locations[0]].name
-  scopes              = each.value.app_insights == "portal" ? data.azurerm_application_insights.portal.id : data.azurerm_application_insights.geolocation.id
+  scopes              = [each.value.app_insights == "portal" ? data.azurerm_application_insights.portal.id : data.azurerm_application_insights.geolocation.id]
 
   description = "Availability test for ${each.key}"
 
