@@ -126,6 +126,14 @@ availability_tests = [
     app_insights = "geolocation"
     uri          = "https://app-geolocation-web-prd-uksouth-01-ndrrqvrn34qke.azurewebsites.net/api/health"
     severity     = 1
+  },
+  {
+    workload     = "xtremeidiots-forums"
+    environment  = "prd"
+    app          = "www.xtremeidiots.com"
+    app_insights = "default"
+    uri          = "https://www.xtremeidiots.com"
+    severity     = 0
   }
 ]
 

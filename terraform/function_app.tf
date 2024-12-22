@@ -39,6 +39,7 @@ resource "azurerm_linux_function_app" "app" {
   app_settings = {
     "ApplicationInsightsAgent_EXTENSION_VERSION" = "~3"
 
+    "default_appinsights_connection_string"     = azurerm_application_insights.ai[var.locations[0]].connection_string
     "portal_appinsights_connection_string"      = data.azurerm_application_insights.portal.connection_string
     "geolocation_appinsights_connection_string" = data.azurerm_application_insights.geolocation.connection_string
 
