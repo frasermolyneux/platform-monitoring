@@ -57,6 +57,7 @@ jobs:
       run: |
         cd terraform
         echo "func_apps=$(terraform output -json func_apps)" >> $GITHUB_OUTPUT
+        echo "subscriptions=$(terraform output -json subscriptions)" >> $GITHUB_OUTPUT
       env:
         ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
         ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
@@ -66,6 +67,29 @@ jobs:
 
     outputs:
       func_apps: ${{ steps.terraform-output.outputs.func_apps }}
+      subscriptions: ${{ steps.terraform-output.outputs.subscriptions }}
+
+  terraform-subscriptions-plan-and-apply-dev:
+    environment: Development
+    runs-on: ubuntu-latest
+    needs: [terraform-plan-and-apply-dev]
+
+    strategy:
+      matrix:
+        subscription: ${{ fromJSON(needs.terraform-plan-and-apply-dev.outputs.subscriptions) }}
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - uses: frasermolyneux/actions/terraform-plan-and-apply@main
+      with:
+        terraform-folder: "terraform-sub"
+        terraform-var-file: "tfvars/dev.tfvars"
+        terraform-backend-file: "backends/dev.backend.hcl"
+        terraform-additional-args: "-var 'subscription_name=${{ matrix.subscription.name }}' -var 'subscription_id=${{ matrix.subscription.subscription_id }}'"
+        AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+        AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+        AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
   function-app-deploy-dev:
     environment: Development
