@@ -32,8 +32,12 @@ variable "portal_app_insights" {
   })
 }
 
-variable "test_config" {
-  type = string
+variable "availability_tests" {
+  type = list(object({
+    app          = string
+    app_insights = string
+    uri          = string
+  }))
 }
 
 variable "log_analytics_subscription_id" {}

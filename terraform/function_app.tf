@@ -42,7 +42,7 @@ resource "azurerm_linux_function_app" "app" {
     "portal_appinsights_connection_string"      = data.azurerm_application_insights.portal.connection_string
     "geolocation_appinsights_connection_string" = data.azurerm_application_insights.geolocation.connection_string
 
-    "test_config" = var.test_config
+    "test_config" = toJson(var.availability_tests)
 
     // https://learn.microsoft.com/en-us/azure/azure-monitor/profiler/profiler-azure-functions#app-settings-for-enabling-profiler
     "APPINSIGHTS_PROFILERFEATURE_VERSION"  = "1.0.0"
