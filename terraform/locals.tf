@@ -8,8 +8,8 @@ locals {
   }
 
   app_insights_map = {
-    "default"     = azurerm_application_insights.ai[var.locations[0]].id
-    "portal"      = data.azurerm_application_insights.portal.id
-    "geolocation" = data.azurerm_application_insights.geolocation.id
+    "default"     = azurerm_application_insights.ai[var.locations[0]]
+    "portal"      = data.azurerm_application_insights.portal
+    "geolocation" = data.azurerm_application_insights.geolocation
   }
 }
