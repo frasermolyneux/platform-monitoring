@@ -1,5 +1,5 @@
 resource "azurerm_monitor_action_group" "critical" {
-  name                = "CriticalAlertsAction"
+  name                = "p0-critical-alerts-${var.environment}"
   resource_group_name = azurerm_resource_group.rg[var.locations[0]].name
   short_name          = "p0action"
 
@@ -21,7 +21,7 @@ resource "azurerm_monitor_action_group" "critical" {
 }
 
 resource "azurerm_monitor_action_group" "high" {
-  name                = "HighAlertsAction"
+  name                = "p1-high-alerts-${var.environment}"
   resource_group_name = azurerm_resource_group.rg[var.locations[0]].name
   short_name          = "p1action"
 
@@ -43,7 +43,7 @@ resource "azurerm_monitor_action_group" "high" {
 }
 
 resource "azurerm_monitor_action_group" "moderate" {
-  name                = "ModerateAlertsAction"
+  name                = "p2-moderate-alerts-${var.environment}"
   resource_group_name = azurerm_resource_group.rg[var.locations[0]].name
   short_name          = "p2action"
 
@@ -54,7 +54,7 @@ resource "azurerm_monitor_action_group" "moderate" {
 }
 
 resource "azurerm_monitor_action_group" "low" {
-  name                = "LowAlertsAction"
+  name                = "p3-low-alerts-${var.environment}"
   resource_group_name = azurerm_resource_group.rg[var.locations[0]].name
   short_name          = "p3action"
 
@@ -65,7 +65,7 @@ resource "azurerm_monitor_action_group" "low" {
 }
 
 resource "azurerm_monitor_action_group" "informational" {
-  name                = "InformationalAlertsAction"
+  name                = "p4-informational-alerts-${var.environment}"
   resource_group_name = azurerm_resource_group.rg[var.locations[0]].name
   short_name          = "p4action"
 

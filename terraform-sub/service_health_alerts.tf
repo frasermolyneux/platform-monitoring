@@ -16,7 +16,7 @@ resource "azurerm_monitor_activity_log_alert" "subscription_service_health_alert
   }
 
   action {
-    action_group_id = data.azurerm_monitor_action_group.critical.id
+    action_group_id = var.environment == "prd" ? data.azurerm_monitor_action_group.critical.id : data.azurerm_monitor_action_group.informational.id
   }
 
   tags = {
@@ -45,7 +45,7 @@ resource "azurerm_monitor_activity_log_alert" "subscription_service_health_alert
   }
 
   action {
-    action_group_id = data.azurerm_monitor_action_group.low.id
+    action_group_id = var.environment == "prd" ? data.azurerm_monitor_action_group.low.id : data.azurerm_monitor_action_group.informational.id
   }
 
   tags = {
@@ -74,7 +74,7 @@ resource "azurerm_monitor_activity_log_alert" "subscription_service_health_alert
   }
 
   action {
-    action_group_id = data.azurerm_monitor_action_group.low.id
+    action_group_id = var.environment == "prd" ? data.azurerm_monitor_action_group.low.id : data.azurerm_monitor_action_group.informational.id
   }
 
   tags = {
@@ -103,7 +103,7 @@ resource "azurerm_monitor_activity_log_alert" "subscription_service_health_alert
   }
 
   action {
-    action_group_id = data.azurerm_monitor_action_group.high.id
+    action_group_id = var.environment == "prd" ? data.azurerm_monitor_action_group.high.id : data.azurerm_monitor_action_group.low.id
   }
 
   tags = {
