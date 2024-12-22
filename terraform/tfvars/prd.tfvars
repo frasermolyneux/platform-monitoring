@@ -64,44 +64,68 @@ portal_app_insights = {
 
 availability_tests = [
   {
+    workload     = "portal-event-ingest"
+    environment  = "prd"
     app          = "fn-portal-event-ingest-prd-uksouth-01-0a313c960b27"
     app_insights = "portal"
     uri          = "https://fn-portal-event-ingest-prd-uksouth-01-0a313c960b27.azurewebsites.net/api/health"
+    severity     = 0
   },
   {
+    workload     = "portal-repo"
+    environment  = "prd"
     app          = "app-portal-repo-prd-uksouth-01-b8f876e0fb09"
     app_insights = "portal"
     uri          = "https://app-portal-repo-prd-uksouth-01-b8f876e0fb09.azurewebsites.net/api/health"
+    severity     = 0
   },
   {
+    workload     = "portal-repo-func"
+    environment  = "prd"
     app          = "fn-portal-repo-func-prd-uksouth-01-f72fbef87dc5"
     app_insights = "portal"
     uri          = "https://fn-portal-repo-func-prd-uksouth-01-f72fbef87dc5.azurewebsites.net/api/health"
+    severity     = 1
   },
   {
+    workload     = "portal-servers-integration"
+    environment  = "prd"
     app          = "app-portal-servers-int-prd-uksouth-01-bxxyivgotrxya"
     app_insights = "portal"
     uri          = "https://app-portal-servers-int-prd-uksouth-01-bxxyivgotrxya.azurewebsites.net/api/health"
+    severity     = 1
   },
   {
+    workload     = "portal-sync"
+    environment  = "prd"
     app          = "fn-portal-sync-prd-uksouth-01-e7b4c78e276d"
     app_insights = "portal"
     uri          = "https://fn-portal-sync-prd-uksouth-01-e7b4c78e276d.azurewebsites.net/api/health"
+    severity     = 1
   },
   {
+    workload     = "portal-web"
+    environment  = "prd"
     app          = "app-portal-web-prd-uksouth-01-l6supxzf6itfq"
     app_insights = "portal"
     uri          = "https://app-portal-web-prd-uksouth-01-l6supxzf6itfq.azurewebsites.net/api/health"
+    severity     = 0
   },
   {
+    workload     = "geolocation"
+    environment  = "prd"
     app          = "app-geolocation-api-prd-uksouth-01-queggvl6v5yta"
     app_insights = "geolocation"
     uri          = "https://app-geolocation-api-prd-uksouth-01-queggvl6v5yta.azurewebsites.net/api/health"
+    severity     = 1
   },
   {
+    workload     = "geolocation"
+    environment  = "prd"
     app          = "app-geolocation-web-prd-uksouth-01-ndrrqvrn34qke"
     app_insights = "geolocation"
     uri          = "https://app-geolocation-web-prd-uksouth-01-ndrrqvrn34qke.azurewebsites.net/api/health"
+    severity     = 1
   }
 ]
 

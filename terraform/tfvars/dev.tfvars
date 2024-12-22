@@ -32,39 +32,60 @@ portal_app_insights = {
 
 availability_tests = [
   {
+    workload     = "portal-event-ingest"
+    environment  = "dev"
     app          = "fn-portal-event-ingest-dev-uksouth-01-fafcb30ca7e0"
     app_insights = "portal"
     uri          = "https://fn-portal-event-ingest-dev-uksouth-01-fafcb30ca7e0.azurewebsites.net/api/health"
+    severity     = 4
   },
   {
+    workload     = "portal-repo"
+    environment  = "dev"
     app          = "app-portal-repo-dev-uksouth-01-ebd9159c6051"
     app_insights = "portal"
     uri          = "https://app-portal-repo-dev-uksouth-01-ebd9159c6051.azurewebsites.net/api/health"
+    severity     = 4
   },
   {
+    workload     = "portal-repo-func"
+    environment  = "dev"
     app          = "fn-portal-repo-func-dev-uksouth-01-be9e6fe6e9c7"
     app_insights = "portal"
     uri          = "https://fn-portal-repo-func-dev-uksouth-01-be9e6fe6e9c7.azurewebsites.net/api/health"
+    severity     = 4
   },
   {
+    workload     = "portal-servers-integration"
+    environment  = "dev"
     app          = "app-portal-servers-int-dev-uksouth-01-32s5yslgz4hea"
     app_insights = "portal"
     uri          = "https://app-portal-servers-int-dev-uksouth-01-32s5yslgz4hea.azurewebsites.net/api/health"
+    severity     = 4
   },
   {
+    workload     = "portal-sync"
+    environment  = "dev"
     app          = "fn-portal-sync-dev-uksouth-01-f65d076b94fb"
     app_insights = "portal"
     uri          = "https://fn-portal-sync-dev-uksouth-01-f65d076b94fb.azurewebsites.net/api/health"
+    severity     = 4
   },
   {
+    workload     = "geolocation"
+    environment  = "dev"
     app          = "app-geolocation-api-dev-uksouth-01-3omiauqb7et4w"
     app_insights = "geolocation"
     uri          = "https://app-geolocation-api-dev-uksouth-01-3omiauqb7et4w.azurewebsites.net/api/health"
+    severity     = 4
   },
   {
+    workload     = "geolocation"
+    environment  = "dev"
     app          = "app-geolocation-web-dev-uksouth-01-tzcaho2oarnae"
     app_insights = "geolocation"
     uri          = "https://app-geolocation-web-dev-uksouth-01-tzcaho2oarnae.azurewebsites.net/api/health"
+    severity     = 4
   }
 ]
 

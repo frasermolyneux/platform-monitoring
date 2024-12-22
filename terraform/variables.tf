@@ -34,9 +34,12 @@ variable "portal_app_insights" {
 
 variable "availability_tests" {
   type = list(object({
+    workload     = string
+    environment  = string
     app          = string
     app_insights = string
     uri          = string
+    severity     = number
   }))
 }
 

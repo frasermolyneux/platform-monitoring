@@ -1,7 +1,7 @@
 resource "azurerm_monitor_metric_alert" "availability" {
   for_each = { for each in var.availability_tests : each.app => each }
 
-  name = "workload - ${each.key} - availability"
+  name = "${each.value.workload}-${each.value.environment} - ${each.key} - availability"
 
   resource_group_name = azurerm_resource_group.rg[var.locations[0]].name
   scopes              = [each.value.app_insights == "portal" ? data.azurerm_application_insights.portal.id : data.azurerm_application_insights.geolocation.id]
@@ -22,7 +22,14 @@ resource "azurerm_monitor_metric_alert" "availability" {
     }
   }
 
+  severity = each.value.severity
+
   action {
     action_group_id = azurerm_monitor_action_group.critical.id
+  }
+
+  tags = {
+    "Workload"    = each.value.workload
+    "Environment" = each.value.environment
   }
 }
