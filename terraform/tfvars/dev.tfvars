@@ -86,6 +86,14 @@ availability_tests = [
     app_insights = "geolocation"
     uri          = "https://app-geolocation-web-dev-uksouth-01-tzcaho2oarnae.azurewebsites.net/api/health"
     severity     = 4
+  },
+  {
+    workload     = "dev.molyneux.me"
+    environment  = "dev"
+    app          = "dev.molyneux.me"
+    app_insights = "default"
+    uri          = "https://dev.molyneux.me/"
+    severity     = 4
   }
 ]
 

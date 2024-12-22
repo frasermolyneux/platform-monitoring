@@ -101,7 +101,7 @@ availability_tests = [
     app          = "fn-portal-sync-prd-uksouth-01-e7b4c78e276d"
     app_insights = "portal"
     uri          = "https://fn-portal-sync-prd-uksouth-01-e7b4c78e276d.azurewebsites.net/api/health"
-    severity     = 1
+    severity     = 0
   },
   {
     workload     = "portal-web"
@@ -134,6 +134,38 @@ availability_tests = [
     app_insights = "default"
     uri          = "https://www.xtremeidiots.com"
     severity     = 0
+  },
+  {
+    workload     = "xtremeidiots-redirect"
+    environment  = "prd"
+    app          = "redirect.xtremeidiots.net"
+    app_insights = "default"
+    uri          = "https://redirect.xtremeidiots.net"
+    severity     = 1
+  },
+  {
+    workload     = "xtremeidiots-tcadmin"
+    environment  = "prd"
+    app          = "tcadmin.xtremeidiots.com"
+    app_insights = "default"
+    uri          = "https://tcadmin.xtremeidiots.com"
+    severity     = 1
+  },
+  {
+    workload     = "bishopsbees"
+    environment  = "prd"
+    app          = "bishopbees.co.uk"
+    app_insights = "default"
+    uri          = "https://bishopsbees.co.uk"
+    severity     = 0
+  },
+  {
+    workload     = "molyneux.me"
+    environment  = "prd"
+    app          = "molyneux.me"
+    app_insights = "default"
+    uri          = "https://www.molyneux.me/"
+    severity     = 3
   }
 ]
 
