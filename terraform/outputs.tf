@@ -5,7 +5,7 @@ locals {
     location            = app.location
   }]
 
-  subscriptions = [for sub in var.var.subscriptions : {
+  subscriptions = [for sub in var.subscriptions : {
     name            = sub.name
     subscription_id = sub.subscription_id
   }]
