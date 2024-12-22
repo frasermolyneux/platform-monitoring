@@ -38,9 +38,9 @@ jobs:
         terraform-folder: "terraform"
         terraform-var-file: "tfvars/dev.tfvars"
         terraform-backend-file: "backends/dev.backend.hcl"
-        AZURE_CLIENT_ID: ${{ env.AZURE_CLIENT_ID }}
-        AZURE_TENANT_ID: ${{ env.AZURE_TENANT_ID }}
-        AZURE_SUBSCRIPTION_ID: ${{ env.AZURE_SUBSCRIPTION_ID }}
+        AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
+        AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+        AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
 
     - id: terraform-output
       shell: bash
@@ -49,9 +49,9 @@ jobs:
         echo "func_apps=$(terraform output -json func_apps)" >> $GITHUB_OUTPUT
         echo "subscriptions=$(terraform output -json subscriptions)" >> $GITHUB_OUTPUT
       env:
-        ARM_CLIENT_ID: ${{ env.AZURE_CLIENT_ID }}
-        ARM_SUBSCRIPTION_ID: ${{ env.AZURE_SUBSCRIPTION_ID }}
-        ARM_TENANT_ID: ${{ env.AZURE_TENANT_ID }}
+        ARM_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
+        ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+        ARM_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
         ARM_USE_AZUREAD: true
         ARM_USE_OIDC: true
 
@@ -77,9 +77,9 @@ jobs:
         terraform-var-file: "tfvars/dev.tfvars"
         terraform-backend-file: "backends/dev.backend.hcl"
         terraform-additional-args: "-var 'subscription_name=${{ matrix.subscription.name }}' -var 'subscription_id=${{ matrix.subscription.subscription_id }}'"
-        AZURE_CLIENT_ID: ${{ env.AZURE_CLIENT_ID }}
-        AZURE_TENANT_ID: ${{ env.AZURE_TENANT_ID }}
-        AZURE_SUBSCRIPTION_ID: ${{ env.AZURE_SUBSCRIPTION_ID }}
+        AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
+        AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+        AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
 
   function-app-deploy-dev:
     environment: Development
@@ -100,6 +100,6 @@ jobs:
       with:
         function-app-artifact-name: "monitoring-func"
         function-app-name: ${{ matrix.func_app.name }}
-        AZURE_CLIENT_ID: ${{ env.AZURE_CLIENT_ID }}
-        AZURE_TENANT_ID: ${{ env.AZURE_TENANT_ID }}
-        AZURE_SUBSCRIPTION_ID: ${{ env.AZURE_SUBSCRIPTION_ID }}
+        AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
+        AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+        AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
