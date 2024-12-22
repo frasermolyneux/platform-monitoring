@@ -15,6 +15,10 @@ resource "azurerm_monitor_activity_log_alert" "subscription_service_health_alert
     }
   }
 
+  action {
+    action_group_id = data.azurerm_monitor_action_group.critical.id
+  }
+
   tags = {
     Environment = var.environment
     Workload    = var.subscription_name
@@ -38,6 +42,10 @@ resource "azurerm_monitor_activity_log_alert" "subscription_service_health_alert
     service_health {
       events = ["Maintenance"]
     }
+  }
+
+  action {
+    action_group_id = data.azurerm_monitor_action_group.low.id
   }
 
   tags = {
@@ -65,6 +73,10 @@ resource "azurerm_monitor_activity_log_alert" "subscription_service_health_alert
     }
   }
 
+  action {
+    action_group_id = data.azurerm_monitor_action_group.low.id
+  }
+
   tags = {
     Environment = var.environment
     Workload    = var.subscription_name
@@ -90,6 +102,10 @@ resource "azurerm_monitor_activity_log_alert" "subscription_service_health_alert
     }
   }
 
+  action {
+    action_group_id = data.azurerm_monitor_action_group.high.id
+  }
+
   tags = {
     Environment = var.environment
     Workload    = var.subscription_name
@@ -113,6 +129,10 @@ resource "azurerm_monitor_activity_log_alert" "subscription_service_health_alert
     service_health {
       events = ["Security"]
     }
+  }
+
+  action {
+    action_group_id = data.azurerm_monitor_action_group.high.id
   }
 
   tags = {

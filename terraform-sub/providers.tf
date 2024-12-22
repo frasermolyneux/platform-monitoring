@@ -23,3 +23,10 @@ provider "azurerm" {
 
   storage_use_azuread = true
 }
+
+provider "azurerm" {
+  alias           = "action_group"
+  subscription_id = var.action_group_subscription_id
+  features {}
+  storage_use_azuread = true
+}
