@@ -8,9 +8,7 @@ terraform {
     }
   }
 
-  backend "azurerm" {
-    key = var.subscription_name
-  }
+  backend "azurerm" {}
 }
 
 provider "azurerm" {
