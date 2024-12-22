@@ -25,7 +25,7 @@ resource "azurerm_monitor_metric_alert" "availability" {
   severity = each.value.severity
 
   action {
-    action_group_id = azurerm_monitor_action_group.critical.id
+    action_group_id = local.action_group_map[each.value.severity].id
   }
 
   tags = {
