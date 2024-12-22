@@ -1,0 +1,28 @@
+resource "azurerm_monitor_metric_alert" "availability" {
+  for_each = { for each in var.availability_tests : each.app => each }
+
+  name = "workload - ${each.key} - availability"
+
+  resource_group_name = azurerm_resource_group.rg[var.locations[0]].name
+  scopes              = each.value.app_insights == "portal" ? data.azurerm_application_insights.portal.id : data.azurerm_application_insights.geolocation.id
+
+  description = "Availability test for ${each.key}"
+
+  criteria {
+    metric_namespace = "microsoft.insights/components"
+    metric_name      = "availabilityResults/availabilityPercentage"
+    aggregation      = "Average"
+    operator         = "LessThan"
+    threshold        = 95
+
+    dimension {
+      name     = "availabilityResult/name"
+      operator = "Include"
+      values   = [each.key]
+    }
+  }
+
+  action {
+    action_group_id = azurerm_monitor_action_group.critical.id
+  }
+}
