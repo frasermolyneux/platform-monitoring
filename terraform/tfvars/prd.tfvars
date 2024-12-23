@@ -130,7 +130,7 @@ availability_tests = [
   {
     workload     = "xtremeidiots-forums"
     environment  = "prd"
-    app          = "www.xtremeidiots.com"
+    app          = "www.xtremeidiots.com-web"
     app_insights = "default"
     uri          = "https://www.xtremeidiots.com"
     severity     = 0
@@ -156,7 +156,7 @@ availability_tests = [
     environment  = "prd"
     app          = "tcadmin.xtremeidiots.com"
     app_insights = "default"
-    uri          = "https://tcadmin.xtremeidiots.com/Login"
+    uri          = "https://tcadmin.xtremeidiots.com"
     severity     = 1
   },
   {
