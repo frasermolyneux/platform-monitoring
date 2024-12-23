@@ -17,7 +17,7 @@ resource "azurerm_monitor_metric_alert" "availability" {
 
     dimension {
       name     = "availabilityResult/name"
-      operator = "Include"
+      operator = "StartsWith"
       values   = [each.key]
     }
   }
