@@ -98,7 +98,7 @@ public class ExternalHealthCheck
                     continue;
                 }
 
-                uri = uri.Replace(tokenKey, configuration[tokenKey]);
+                uri = uri.Replace(string.Format("{{0}}", token), configuration[tokenKey]);
             }
         }
 
