@@ -97,7 +97,7 @@ public class ExternalHealthCheck
                     throw new Exception($"Token {tokenKey} not found in configuration");
                 }
 
-                uri = uri.Replace(tokenKey, configuration[tokenKey]);
+                uri = uri.Replace(string.Format("{{0}}", tokenKey), configuration[tokenKey]);
             }
         }
 
