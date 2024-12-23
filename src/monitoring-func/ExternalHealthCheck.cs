@@ -89,16 +89,15 @@ public class ExternalHealthCheck
         {
             foreach (var token in match.Groups)
             {
-                var tokenKey = token.ToString();
+                var tokenKey = token.ToString()?.Replace("{", "").Replace("}", "");
                 if (tokenKey == null) continue;
 
                 if (configuration[tokenKey] == null)
                 {
-                    telemetryClient.TrackException(new Exception($"Token {tokenKey} not found in configuration"));
-                    return;
+                    throw new Exception($"Token {tokenKey} not found in configuration");
                 }
 
-                uri = uri.Replace(string.Format("{{0}}", tokenKey), configuration[tokenKey]);
+                uri = uri.Replace(tokenKey, configuration[tokenKey]);
             }
         }
 
