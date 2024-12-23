@@ -50,6 +50,10 @@ subscriptions = {
   }
 }
 
+azure_monitor_readers = [
+  "spn-portal-core-production"
+]
+
 geolocation_app_insights = {
   subscription_id     = "d3b204ab-7c2b-47f7-8d5a-de19e85591e7"
   resource_group_name = "rg-geolocation-prd-uksouth-01"
