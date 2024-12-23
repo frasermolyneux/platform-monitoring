@@ -19,7 +19,14 @@ subscriptions = {
 }
 
 azure_monitor_readers = [
-  "spn-portal-core-development"
+  "spn-geo-location-development",
+  "spn-portal-bots-development",
+  "spn-portal-core-development",
+  "spn-portal-event-ingest-development",
+  "spn-portal-repository-development",
+  "spn-portal-repository-func-development",
+  "spn-portal-sync-development",
+  "spn-xtremeidiots-portal-development"
 ]
 
 geolocation_app_insights = {
