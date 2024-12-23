@@ -151,14 +151,14 @@ availability_tests = [
     uri          = "https://redirect.xtremeidiots.net"
     severity     = 1
   },
-  {
-    workload     = "xtremeidiots-tcadmin"
-    environment  = "prd"
-    app          = "tcadmin.xtremeidiots.com"
-    app_insights = "default"
-    uri          = "https://tcadmin.xtremeidiots.com"
-    severity     = 1
-  },
+  //{
+  //  workload     = "xtremeidiots-tcadmin"
+  //  environment  = "prd"
+  //  app          = "tcadmin.xtremeidiots.com"
+  //  app_insights = "default"
+  //  uri          = "https://tcadmin.xtremeidiots.com"
+  //  severity     = 1
+  //},
   {
     workload     = "bishopsbees"
     environment  = "prd"
