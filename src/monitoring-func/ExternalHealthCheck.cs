@@ -84,20 +84,20 @@ public class ExternalHealthCheck
 
     private async Task RunAvailabilityTestAsync(ILogger log, string uri)
     {
-        var match = Regex.Match(uri, @"%([a-zA-Z1-9_]+)%");
-        if (match.Success)
-        {
-            foreach (var token in match.Groups)
-            {
-                var tokenKey = token.ToString();
-                if (tokenKey == null) continue;
+        var matches = Regex.Matches(uri, @"%([a-zA-Z1-9_]+)%");
 
-                if (configuration[tokenKey] == null)
+        foreach (Match match in matches)
+        {
+            if (match.Success)
+            {
+                var token = match.Groups[1].ToString();
+
+                if (configuration[token] == null)
                 {
-                    throw new Exception($"Token {tokenKey} not found in configuration");
+                    throw new Exception($"Token {token} not found in configuration");
                 }
 
-                uri = uri.Replace($"%{tokenKey}%", configuration[tokenKey]);
+                uri = uri.Replace($"%{token}%", configuration[token]);
             }
         }
 
