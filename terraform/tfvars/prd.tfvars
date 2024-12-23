@@ -135,6 +135,14 @@ availability_tests = [
     uri          = "https://www.xtremeidiots.com"
     severity     = 0
   },
+  { // This actually runs the cron on the website; but useful to monitor as it shows when the cron is failing etc.
+    workload     = "xtremeidiots-forums"
+    environment  = "prd"
+    app          = "www.xtremeidiots.com-tasks"
+    app_insights = "default"
+    uri          = "https://www.xtremeidiots.com/applications/core/interface/task/web.php?key={xtremeidiots-forums-task-key}"
+    severity     = 1
+  },
   {
     workload     = "xtremeidiots-redirect"
     environment  = "prd"

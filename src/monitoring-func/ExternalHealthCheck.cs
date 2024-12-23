@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Text.RegularExpressions;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.Channel;
 using Microsoft.ApplicationInsights.DataContracts;
@@ -83,6 +84,24 @@ public class ExternalHealthCheck
 
     private async Task RunAvailabilityTestAsync(ILogger log, string uri)
     {
+        var match = Regex.Match(uri, @"{([^}]+)}");
+        if (match.Success)
+        {
+            foreach (var token in match.Groups)
+            {
+                var tokenKey = token.ToString();
+                if (tokenKey == null) continue;
+
+                if (configuration[tokenKey] == null)
+                {
+                    telemetryClient.TrackException(new Exception($"Token {token} not found in configuration"));
+                    continue;
+                }
+
+                uri = uri.Replace(tokenKey, configuration[tokenKey]);
+            }
+        }
+
         // Create a new HttpClient and send a request to the configured URI and validate that the response is a 200 OK, otherwise throw an exception
         using (var httpClient = new HttpClient())
         {
