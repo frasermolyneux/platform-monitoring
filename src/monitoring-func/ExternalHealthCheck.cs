@@ -87,6 +87,7 @@ public class ExternalHealthCheck
             var response = await httpClient.GetAsync(uri);
             if (!response.IsSuccessStatusCode)
             {
+                log.LogInformation(response.Content.ReadAsStringAsync().Result);
                 throw new Exception($"Failed to get a successful response from {uri}, received {response.StatusCode}");
             }
         }
