@@ -13,11 +13,13 @@ namespace MX.Platform.MonitoringFunc;
 public class ExternalHealthCheck
 {
     private readonly IConfiguration configuration;
+    private readonly TelemetryClient telemetryClient;
     public Dictionary<string, TelemetryClient> telemetryClients { get; set; } = new Dictionary<string, TelemetryClient>();
 
-    public ExternalHealthCheck(IConfiguration configuration)
+    public ExternalHealthCheck(IConfiguration configuration, TelemetryClient telemetryClient)
     {
         this.configuration = configuration;
+        this.telemetryClient = telemetryClient;
     }
 
     [Function(nameof(ExternalHealthCheck))]
@@ -87,7 +89,7 @@ public class ExternalHealthCheck
             var response = await httpClient.GetAsync(uri);
             if (!response.IsSuccessStatusCode)
             {
-                log.LogInformation(response.Content.ReadAsStringAsync().Result);
+                telemetryClient.TrackTrace(response.Content.ReadAsStringAsync().Result);
                 throw new Exception($"Failed to get a successful response from {uri}, received {response.StatusCode}");
             }
         }
