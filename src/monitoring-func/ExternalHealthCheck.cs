@@ -94,11 +94,11 @@ public class ExternalHealthCheck
 
                 if (configuration[tokenKey] == null)
                 {
-                    telemetryClient.TrackException(new Exception($"Token {token} not found in configuration"));
-                    continue;
+                    telemetryClient.TrackException(new Exception($"Token {tokenKey} not found in configuration"));
+                    return;
                 }
 
-                uri = uri.Replace(string.Format("{{0}}", token), configuration[tokenKey]);
+                uri = uri.Replace(string.Format("{{0}}", tokenKey), configuration[tokenKey]);
             }
         }
 
