@@ -26,7 +26,8 @@ azure_monitor_readers = [
   "spn-portal-repository-development",
   "spn-portal-repository-func-development",
   "spn-portal-sync-development",
-  "spn-xtremeidiots-portal-development"
+  "spn-xtremeidiots-portal-development",
+  "spn-molyneux-me-development"
 ]
 
 geolocation_app_insights = {
