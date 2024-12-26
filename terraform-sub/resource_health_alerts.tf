@@ -19,5 +19,10 @@ resource "azurerm_monitor_activity_log_alert" "subscription_resource_health_aler
     action_group_id = var.environment == "prd" ? data.azurerm_monitor_action_group.low.id : data.azurerm_monitor_action_group.informational.id
   }
 
-  tags = var.tags
+  tags = {
+    Environment = var.environment
+    Workload    = var.subscription_name
+    DeployedBy  = var.tags.DeployedBy
+    Git         = var.tags.Git
+  }
 }
