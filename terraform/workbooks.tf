@@ -5,10 +5,16 @@ locals {
   }]
 }
 
+// create a uuid resource for each template
+resource "random_uuid" "workbook" {
+  for_each = { for each in local.workbook_templates : each.workbook_name => each }
+}
+
+
 resource "azurerm_application_insights_workbook" "workbook" {
   for_each = { for each in local.workbook_templates : each.workbook_name => each }
 
-  name = "platform-monitoring-${each.key}-${var.environment}"
+  name = random_uuid.workbook[each.key].result
 
   resource_group_name = azurerm_resource_group.rg[var.locations[0]].name
   location            = azurerm_resource_group.rg[var.locations[0]].location
