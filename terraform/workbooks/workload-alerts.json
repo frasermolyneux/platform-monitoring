@@ -1,0 +1,14 @@
+{
+    "version": "Notebook/1.0",
+    "items": [
+        {
+            "type": 1,
+            "content": {
+                "json": "New workbook"
+            },
+            "name": "text - 2"
+        }
+    ],
+    "styleSettings": {},
+    "$schema": "https://github.com/Microsoft/Application-Insights-Workbooks/blob/master/schema/workbook.json"
+}
