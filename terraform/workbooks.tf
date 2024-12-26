@@ -11,7 +11,7 @@ resource "azurerm_application_insights_workbook" "workbook" {
   name = "platform-monitoring-${each.key}-${var.environment}"
 
   resource_group_name = azurerm_resource_group.rg[var.locations[0]].name
-  location            = azurerm_resource_group.rg[var.locations[0]].name
+  location            = azurerm_resource_group.rg[var.locations[0]].location
 
   display_name = "platform-monitoring-${each.key}-${var.environment}"
 
