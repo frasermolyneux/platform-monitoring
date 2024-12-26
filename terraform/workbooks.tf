@@ -15,7 +15,7 @@ resource "azurerm_application_insights_workbook" "workbook" {
 
   display_name = "platform-monitoring-${each.key}-${var.environment}"
 
-  data_json = each.value.data_json
+  data_json = jsonencode(each.value.data_json)
 
   tags = var.tags
 }
