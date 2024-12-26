@@ -83,7 +83,7 @@ availability_tests = [
     severity     = 0
   },
   {
-    workload     = "portal-repo"
+    workload     = "portal-repository"
     environment  = "prd"
     app          = "app-portal-repo-prd-uksouth-01-b8f876e0fb09"
     app_insights = "portal"
@@ -91,7 +91,7 @@ availability_tests = [
     severity     = 0
   },
   {
-    workload     = "portal-repo-func"
+    workload     = "portal-repository-func"
     environment  = "prd"
     app          = "fn-portal-repo-func-prd-uksouth-01-f72fbef87dc5"
     app_insights = "portal"

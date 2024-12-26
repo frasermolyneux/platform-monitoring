@@ -51,7 +51,7 @@ availability_tests = [
     severity     = 4
   },
   {
-    workload     = "portal-repo"
+    workload     = "portal-repository"
     environment  = "dev"
     app          = "app-portal-repo-dev-uksouth-01-ebd9159c6051"
     app_insights = "portal"
@@ -59,7 +59,7 @@ availability_tests = [
     severity     = 4
   },
   {
-    workload     = "portal-repo-func"
+    workload     = "portal-repository-func"
     environment  = "dev"
     app          = "fn-portal-repo-func-dev-uksouth-01-be9e6fe6e9c7"
     app_insights = "portal"
