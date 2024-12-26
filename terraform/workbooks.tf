@@ -5,11 +5,9 @@ locals {
   }]
 }
 
-// create a uuid resource for each template
 resource "random_uuid" "workbook" {
   for_each = { for each in local.workbook_templates : each.workbook_name => each }
 }
-
 
 resource "azurerm_application_insights_workbook" "workbook" {
   for_each = { for each in local.workbook_templates : each.workbook_name => each }

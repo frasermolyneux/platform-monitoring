@@ -2,13 +2,1308 @@
     "version": "Notebook/1.0",
     "items": [
         {
-            "type": 1,
+            "type": 9,
             "content": {
-                "json": "New workbook"
+                "version": "KqlParameterItem/1.0",
+                "parameters": [
+                    {
+                        "id": "c9aaf7da-fffe-48c6-b8c5-78fdb28ee08b",
+                        "version": "KqlParameterItem/1.0",
+                        "name": "Subscription",
+                        "type": 6,
+                        "isRequired": true,
+                        "multiSelect": true,
+                        "quote": "'",
+                        "delimiter": ",",
+                        "typeSettings": {
+                            "additionalResourceOptions": [],
+                            "includeAll": false,
+                            "showDefault": false
+                        },
+                        "timeContext": {
+                            "durationMs": 86400000
+                        },
+                        "value": [
+                            "/subscriptions/4ebd4bf2-7dd9-40b0-b2a4-e687ded49112",
+                            "/subscriptions/f857cea2-c7c0-4aef-b6b6-0c1ed18aafde",
+                            "/subscriptions/1b5b28ed-1365-4a48-b285-80f80a6aaa1b",
+                            "/subscriptions/957a7d34-8562-4098-bb4c-072e08386d07",
+                            "/subscriptions/d3b204ab-7c2b-47f7-8d5a-de19e85591e7",
+                            "/subscriptions/ef3cc6c2-159e-4890-9193-13673dded835",
+                            "/subscriptions/3cc59319-eb1e-4b52-b19e-09a49f9db2e7",
+                            "/subscriptions/655da25d-da46-40c0-8e81-5debe2dcd024",
+                            "/subscriptions/c391a150-f992-41a6-bc81-ebc22bc64376",
+                            "/subscriptions/db34f572-8b71-40d6-8f99-f29a27612144",
+                            "/subscriptions/7760848c-794d-4a19-8cb2-52f71a21ac2b",
+                            "/subscriptions/903b6685-c12a-4703-ac54-7ec1ff15ca43",
+                            "/subscriptions/e1e5de62-3573-4b44-a52b-0f1431675929",
+                            "/subscriptions/d68448b0-9947-46d7-8771-baa331a3063a",
+                            "/subscriptions/845766d6-b73f-49aa-a9f6-eaf27e20b7a8",
+                            "/subscriptions/32444f38-32f4-409f-889c-8e8aa2b5b4d1"
+                        ]
+                    },
+                    {
+                        "id": "d5eaaefc-0fdf-4446-9cd1-1df085bce673",
+                        "version": "KqlParameterItem/1.0",
+                        "name": "TimeRange",
+                        "type": 4,
+                        "isRequired": true,
+                        "typeSettings": {
+                            "selectableValues": [
+                                {
+                                    "durationMs": 300000
+                                },
+                                {
+                                    "durationMs": 900000
+                                },
+                                {
+                                    "durationMs": 1800000
+                                },
+                                {
+                                    "durationMs": 3600000
+                                },
+                                {
+                                    "durationMs": 14400000
+                                },
+                                {
+                                    "durationMs": 43200000
+                                },
+                                {
+                                    "durationMs": 86400000
+                                },
+                                {
+                                    "durationMs": 172800000
+                                },
+                                {
+                                    "durationMs": 259200000
+                                },
+                                {
+                                    "durationMs": 604800000
+                                },
+                                {
+                                    "durationMs": 1209600000
+                                },
+                                {
+                                    "durationMs": 2419200000
+                                },
+                                {
+                                    "durationMs": 2592000000
+                                },
+                                {
+                                    "durationMs": 5184000000
+                                },
+                                {
+                                    "durationMs": 7776000000
+                                }
+                            ],
+                            "allowCustom": true
+                        },
+                        "timeContext": {
+                            "durationMs": 86400000
+                        },
+                        "value": {
+                            "durationMs": 259200000
+                        }
+                    }
+                ],
+                "style": "pills",
+                "queryType": 0,
+                "resourceType": "microsoft.operationalinsights/workspaces"
             },
-            "name": "text - 2"
+            "name": "global-parameters"
+        },
+        {
+            "type": 12,
+            "content": {
+                "version": "NotebookGroup/1.0",
+                "groupType": "editable",
+                "items": [
+                    {
+                        "type": 1,
+                        "content": {
+                            "json": "# Unresolved Alerts\r\nAlerts within timerange where MonitorCondition=Fired and AlertState=New|Acknowledged",
+                            "style": "error"
+                        },
+                        "name": "unresolvedAlertsTitle"
+                    },
+                    {
+                        "type": 3,
+                        "content": {
+                            "version": "KqlItem/1.0",
+                            "query": "AlertsManagementResources | where type =~ 'microsoft.alertsmanagement/alerts'\r\n| where todatetime(properties.essentials.startDateTime) {TimeRange}  \r\n| extend AlertState=tostring(properties.essentials.alertState)\r\n| extend MonitorCondition=tostring(properties.essentials.monitorCondition)\r\n| extend Severity=tostring(properties.essentials.severity)\r\n| extend Severity=case(isempty(Severity), \"Sev4\", Severity == 0, \"Sev0\", Severity == 1, \"Sev1\", Severity == 2, \"Sev2\", Severity == 3, \"Sev3\", Severity == 4, \"Sev4\", Severity)\r\n| where MonitorCondition == \"Fired\"\r\n| where AlertState in (\"New\", \"Acknowledged\")\r\n| summarize Count=count() by Severity\r\n| order by Severity asc",
+                            "size": 4,
+                            "exportedParameters": [
+                                {
+                                    "fieldName": "Severity",
+                                    "parameterName": "UnresolvedAlertsSeverity"
+                                },
+                                {
+                                    "parameterType": 1
+                                }
+                            ],
+                            "queryType": 1,
+                            "resourceType": "microsoft.resourcegraph/resources",
+                            "crossComponentResources": [
+                                "{Subscription}"
+                            ],
+                            "visualization": "tiles",
+                            "tileSettings": {
+                                "titleContent": {
+                                    "columnMatch": "Severity",
+                                    "formatter": 18,
+                                    "formatOptions": {
+                                        "thresholdsOptions": "icons",
+                                        "thresholdsGrid": [
+                                            {
+                                                "operator": "==",
+                                                "thresholdValue": "Sev0",
+                                                "representation": "Sev0",
+                                                "text": "{0}{1}"
+                                            },
+                                            {
+                                                "operator": "==",
+                                                "thresholdValue": "Sev1",
+                                                "representation": "Sev1",
+                                                "text": "{0}{1}"
+                                            },
+                                            {
+                                                "operator": "==",
+                                                "thresholdValue": "Sev2",
+                                                "representation": "Sev2",
+                                                "text": "{0}{1}"
+                                            },
+                                            {
+                                                "operator": "==",
+                                                "thresholdValue": "Sev3",
+                                                "representation": "Sev3",
+                                                "text": "{0}{1}"
+                                            },
+                                            {
+                                                "operator": "==",
+                                                "thresholdValue": "Sev4",
+                                                "representation": "Sev4",
+                                                "text": "{0}{1}"
+                                            },
+                                            {
+                                                "operator": "Default",
+                                                "thresholdValue": null,
+                                                "representation": "success",
+                                                "text": "{0}{1}"
+                                            }
+                                        ]
+                                    }
+                                },
+                                "leftContent": {
+                                    "columnMatch": "Count",
+                                    "formatter": 18,
+                                    "formatOptions": {
+                                        "thresholdsOptions": "icons",
+                                        "thresholdsGrid": [
+                                            {
+                                                "sourceColumn": "Severity",
+                                                "operator": "==",
+                                                "thresholdValue": "Sev0",
+                                                "representation": "4",
+                                                "text": "{0}{1}"
+                                            },
+                                            {
+                                                "sourceColumn": "Severity",
+                                                "operator": "==",
+                                                "thresholdValue": "Sev1",
+                                                "representation": "3",
+                                                "text": "{0}{1}"
+                                            },
+                                            {
+                                                "sourceColumn": "Severity",
+                                                "operator": "==",
+                                                "thresholdValue": "Sev2",
+                                                "representation": "2",
+                                                "text": "{0}{1}"
+                                            },
+                                            {
+                                                "sourceColumn": "Severity",
+                                                "operator": "==",
+                                                "thresholdValue": "Sev3",
+                                                "representation": "1",
+                                                "text": "{0}{1}"
+                                            },
+                                            {
+                                                "sourceColumn": "Severity",
+                                                "operator": "==",
+                                                "thresholdValue": "Sev4",
+                                                "representation": "1",
+                                                "text": "{0}{1}"
+                                            },
+                                            {
+                                                "operator": "Default",
+                                                "thresholdValue": null,
+                                                "representation": "success",
+                                                "text": "{0}{1}"
+                                            }
+                                        ]
+                                    },
+                                    "numberFormat": {
+                                        "unit": 17,
+                                        "options": {
+                                            "style": "decimal",
+                                            "maximumFractionDigits": 2,
+                                            "maximumSignificantDigits": 3
+                                        }
+                                    }
+                                },
+                                "showBorder": true
+                            }
+                        },
+                        "name": "unresolvedAlerts"
+                    },
+                    {
+                        "type": 3,
+                        "content": {
+                            "version": "KqlItem/1.0",
+                            "query": "AlertsManagementResources | where type =~ 'microsoft.alertsmanagement/alerts'\r\n| where todatetime(properties.essentials.startDateTime) {TimeRange}  \r\n| extend Severity=tostring(properties.essentials.severity)\r\n| extend Severity=case(isempty(Severity), \"Sev4\", Severity == 0, \"Sev0\", Severity == 1, \"Sev1\", Severity == 2, \"Sev2\", Severity == 3, \"Sev3\", Severity == 4, \"Sev4\", Severity)\r\n| extend AlertState=tostring(properties.essentials.alertState)\r\n| extend MonitorCondition=tostring(properties.essentials.monitorCondition)\r\n| where Severity == \"{UnresolvedAlertsSeverity}\"\r\n| where MonitorCondition == \"Fired\"\r\n| where AlertState in (\"New\", \"Acknowledged\")\r\n| project AlertId=id, \r\n    StartTime=todatetime(tostring(properties.essentials.startDateTime)), \r\n    Severity, \r\n    AlertState=tostring(properties.essentials.alertState),\r\n    MonitorCondition=tostring(properties.essentials.monitorCondition),\r\n    Name=name,\r\n    TargetResource = tostring(properties.essentials.targetResource), \r\n    SignalType=tostring(properties.essentials.signalType), \r\n    Description=tostring(properties.essentials.description)\r\n| order by StartTime desc\r\n",
+                            "size": 1,
+                            "title": "{UnresolvedAlertsSeverity} Alerts",
+                            "queryType": 1,
+                            "resourceType": "microsoft.resourcegraph/resources",
+                            "crossComponentResources": [
+                                "{Subscription}"
+                            ],
+                            "gridSettings": {
+                                "formatters": [
+                                    {
+                                        "columnMatch": "AlertId",
+                                        "formatter": 5
+                                    },
+                                    {
+                                        "columnMatch": "StartTime",
+                                        "formatter": 6
+                                    },
+                                    {
+                                        "columnMatch": "Severity",
+                                        "formatter": 18,
+                                        "formatOptions": {
+                                            "thresholdsOptions": "icons",
+                                            "thresholdsGrid": [
+                                                {
+                                                    "operator": "==",
+                                                    "thresholdValue": "Sev0",
+                                                    "representation": "4",
+                                                    "text": "{0}{1}"
+                                                },
+                                                {
+                                                    "operator": "==",
+                                                    "thresholdValue": "Sev1",
+                                                    "representation": "3",
+                                                    "text": "{0}{1}"
+                                                },
+                                                {
+                                                    "operator": "==",
+                                                    "thresholdValue": "Sev2",
+                                                    "representation": "2",
+                                                    "text": "{0}{1}"
+                                                },
+                                                {
+                                                    "operator": "==",
+                                                    "thresholdValue": "Sev3",
+                                                    "representation": "1",
+                                                    "text": "{0}{1}"
+                                                },
+                                                {
+                                                    "operator": "==",
+                                                    "thresholdValue": "Sev4",
+                                                    "representation": "info",
+                                                    "text": "{0}{1}"
+                                                },
+                                                {
+                                                    "operator": "Default",
+                                                    "thresholdValue": null,
+                                                    "representation": "success",
+                                                    "text": "{0}{1}"
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "columnMatch": "AlertState",
+                                        "formatter": 18,
+                                        "formatOptions": {
+                                            "thresholdsOptions": "icons",
+                                            "thresholdsGrid": [
+                                                {
+                                                    "operator": "==",
+                                                    "thresholdValue": "New",
+                                                    "representation": "2",
+                                                    "text": "{0}{1}"
+                                                },
+                                                {
+                                                    "operator": "==",
+                                                    "thresholdValue": "Acknowledged",
+                                                    "representation": "1",
+                                                    "text": "{0}{1}"
+                                                },
+                                                {
+                                                    "operator": "Default",
+                                                    "thresholdValue": null,
+                                                    "representation": "success",
+                                                    "text": "{0}{1}"
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "columnMatch": "MonitorCondition",
+                                        "formatter": 18,
+                                        "formatOptions": {
+                                            "thresholdsOptions": "icons",
+                                            "thresholdsGrid": [
+                                                {
+                                                    "operator": "==",
+                                                    "thresholdValue": "Resolved",
+                                                    "representation": "success",
+                                                    "text": "{0}{1}"
+                                                },
+                                                {
+                                                    "operator": "Default",
+                                                    "thresholdValue": null,
+                                                    "representation": "warning",
+                                                    "text": "{0}{1}"
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "columnMatch": "Name",
+                                        "formatter": 1,
+                                        "formatOptions": {
+                                            "linkTarget": "OpenBlade",
+                                            "linkIsContextBlade": true,
+                                            "bladeOpenContext": {
+                                                "bladeName": "AlertDetailsTemplateBlade",
+                                                "extensionName": "Microsoft_Azure_Monitoring",
+                                                "bladeParameters": [
+                                                    {
+                                                        "name": "alertId",
+                                                        "source": "column",
+                                                        "value": "AlertId"
+                                                    },
+                                                    {
+                                                        "name": "alertName",
+                                                        "source": "column",
+                                                        "value": "Name"
+                                                    },
+                                                    {
+                                                        "name": "invokedFrom",
+                                                        "source": "static",
+                                                        "value": "Workbooks"
+                                                    }
+                                                ]
+                                            }
+                                        },
+                                        "tooltipFormat": {
+                                            "tooltip": "View alert details"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        "conditionalVisibility": {
+                            "parameterName": "UnresolvedAlertsSeverity",
+                            "comparison": "isNotEqualTo"
+                        },
+                        "name": "unresolvedAlertsBySeverity"
+                    }
+                ]
+            },
+            "name": "unresolvedAlerts",
+            "styleSettings": {
+                "padding": "20px",
+                "showBorder": true
+            }
+        },
+        {
+            "type": 12,
+            "content": {
+                "version": "NotebookGroup/1.0",
+                "groupType": "editable",
+                "items": [
+                    {
+                        "type": 1,
+                        "content": {
+                            "json": "# New (Unacknowledged) Alerts\r\nAlerts within timerange where AlertState=New",
+                            "style": "error"
+                        },
+                        "name": "newAlertsTitle"
+                    },
+                    {
+                        "type": 3,
+                        "content": {
+                            "version": "KqlItem/1.0",
+                            "query": "AlertsManagementResources | where type =~ 'microsoft.alertsmanagement/alerts'\r\n| where todatetime(properties.essentials.startDateTime) {TimeRange}  \r\n| extend AlertState=tostring(properties.essentials.alertState)\r\n| extend Severity=tostring(properties.essentials.severity)\r\n| extend Severity=case(isempty(Severity), \"Sev4\", Severity == 0, \"Sev0\", Severity == 1, \"Sev1\", Severity == 2, \"Sev2\", Severity == 3, \"Sev3\", Severity == 4, \"Sev4\", Severity)\r\n| where AlertState == \"New\"\r\n| summarize Count=count() by Severity\r\n| order by Severity asc",
+                            "size": 4,
+                            "exportedParameters": [
+                                {
+                                    "fieldName": "Severity",
+                                    "parameterName": "NewAlertsSeverity"
+                                },
+                                {
+                                    "parameterType": 1
+                                }
+                            ],
+                            "queryType": 1,
+                            "resourceType": "microsoft.resourcegraph/resources",
+                            "crossComponentResources": [
+                                "{Subscription}"
+                            ],
+                            "visualization": "tiles",
+                            "tileSettings": {
+                                "titleContent": {
+                                    "columnMatch": "Severity",
+                                    "formatter": 18,
+                                    "formatOptions": {
+                                        "thresholdsOptions": "icons",
+                                        "thresholdsGrid": [
+                                            {
+                                                "operator": "==",
+                                                "thresholdValue": "Sev0",
+                                                "representation": "Sev0",
+                                                "text": "{0}{1}"
+                                            },
+                                            {
+                                                "operator": "==",
+                                                "thresholdValue": "Sev1",
+                                                "representation": "Sev1",
+                                                "text": "{0}{1}"
+                                            },
+                                            {
+                                                "operator": "==",
+                                                "thresholdValue": "Sev2",
+                                                "representation": "Sev2",
+                                                "text": "{0}{1}"
+                                            },
+                                            {
+                                                "operator": "==",
+                                                "thresholdValue": "Sev3",
+                                                "representation": "Sev3",
+                                                "text": "{0}{1}"
+                                            },
+                                            {
+                                                "operator": "==",
+                                                "thresholdValue": "Sev4",
+                                                "representation": "Sev4",
+                                                "text": "{0}{1}"
+                                            },
+                                            {
+                                                "operator": "Default",
+                                                "thresholdValue": null,
+                                                "representation": "success",
+                                                "text": "{0}{1}"
+                                            }
+                                        ]
+                                    }
+                                },
+                                "leftContent": {
+                                    "columnMatch": "Count",
+                                    "formatter": 18,
+                                    "formatOptions": {
+                                        "thresholdsOptions": "icons",
+                                        "thresholdsGrid": [
+                                            {
+                                                "sourceColumn": "Severity",
+                                                "operator": "==",
+                                                "thresholdValue": "Sev0",
+                                                "representation": "4",
+                                                "text": "{0}{1}"
+                                            },
+                                            {
+                                                "sourceColumn": "Severity",
+                                                "operator": "==",
+                                                "thresholdValue": "Sev1",
+                                                "representation": "3",
+                                                "text": "{0}{1}"
+                                            },
+                                            {
+                                                "sourceColumn": "Severity",
+                                                "operator": "==",
+                                                "thresholdValue": "Sev2",
+                                                "representation": "2",
+                                                "text": "{0}{1}"
+                                            },
+                                            {
+                                                "sourceColumn": "Severity",
+                                                "operator": "==",
+                                                "thresholdValue": "Sev3",
+                                                "representation": "1",
+                                                "text": "{0}{1}"
+                                            },
+                                            {
+                                                "sourceColumn": "Severity",
+                                                "operator": "==",
+                                                "thresholdValue": "Sev4",
+                                                "representation": "1",
+                                                "text": "{0}{1}"
+                                            },
+                                            {
+                                                "operator": "Default",
+                                                "thresholdValue": null,
+                                                "representation": "success",
+                                                "text": "{0}{1}"
+                                            }
+                                        ]
+                                    },
+                                    "numberFormat": {
+                                        "unit": 17,
+                                        "options": {
+                                            "style": "decimal",
+                                            "maximumFractionDigits": 2,
+                                            "maximumSignificantDigits": 3
+                                        }
+                                    }
+                                },
+                                "showBorder": true
+                            }
+                        },
+                        "name": "newAlerts"
+                    },
+                    {
+                        "type": 3,
+                        "content": {
+                            "version": "KqlItem/1.0",
+                            "query": "AlertsManagementResources | where type =~ 'microsoft.alertsmanagement/alerts'\r\n| where todatetime(properties.essentials.startDateTime) {TimeRange}  \r\n| extend Severity=tostring(properties.essentials.severity)\r\n| extend Severity=case(isempty(Severity), \"Sev4\", Severity == 0, \"Sev0\", Severity == 1, \"Sev1\", Severity == 2, \"Sev2\", Severity == 3, \"Sev3\", Severity == 4, \"Sev4\", Severity)\r\n| where Severity == \"{NewAlertsSeverity}\"\r\n| extend AlertState=tostring(properties.essentials.alertState)\r\n| where AlertState == \"New\"\r\n| project AlertId=id, \r\n    StartTime=todatetime(tostring(properties.essentials.startDateTime)), \r\n    Severity, \r\n    AlertState=tostring(properties.essentials.alertState),\r\n    MonitorCondition=tostring(properties.essentials.monitorCondition),\r\n    Name=name,\r\n    TargetResource = tostring(properties.essentials.targetResource), \r\n    SignalType=tostring(properties.essentials.signalType), \r\n    Description=tostring(properties.essentials.description)\r\n| order by StartTime desc\r\n",
+                            "size": 1,
+                            "title": "{NewAlertsSeverity} Alerts",
+                            "queryType": 1,
+                            "resourceType": "microsoft.resourcegraph/resources",
+                            "crossComponentResources": [
+                                "{Subscription}"
+                            ],
+                            "gridSettings": {
+                                "formatters": [
+                                    {
+                                        "columnMatch": "AlertId",
+                                        "formatter": 5
+                                    },
+                                    {
+                                        "columnMatch": "StartTime",
+                                        "formatter": 6
+                                    },
+                                    {
+                                        "columnMatch": "Severity",
+                                        "formatter": 18,
+                                        "formatOptions": {
+                                            "thresholdsOptions": "icons",
+                                            "thresholdsGrid": [
+                                                {
+                                                    "operator": "==",
+                                                    "thresholdValue": "Sev0",
+                                                    "representation": "4",
+                                                    "text": "{0}{1}"
+                                                },
+                                                {
+                                                    "operator": "==",
+                                                    "thresholdValue": "Sev1",
+                                                    "representation": "3",
+                                                    "text": "{0}{1}"
+                                                },
+                                                {
+                                                    "operator": "==",
+                                                    "thresholdValue": "Sev2",
+                                                    "representation": "2",
+                                                    "text": "{0}{1}"
+                                                },
+                                                {
+                                                    "operator": "==",
+                                                    "thresholdValue": "Sev3",
+                                                    "representation": "1",
+                                                    "text": "{0}{1}"
+                                                },
+                                                {
+                                                    "operator": "==",
+                                                    "thresholdValue": "Sev4",
+                                                    "representation": "info",
+                                                    "text": "{0}{1}"
+                                                },
+                                                {
+                                                    "operator": "Default",
+                                                    "thresholdValue": null,
+                                                    "representation": "success",
+                                                    "text": "{0}{1}"
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "columnMatch": "AlertState",
+                                        "formatter": 18,
+                                        "formatOptions": {
+                                            "thresholdsOptions": "icons",
+                                            "thresholdsGrid": [
+                                                {
+                                                    "operator": "==",
+                                                    "thresholdValue": "New",
+                                                    "representation": "2",
+                                                    "text": "{0}{1}"
+                                                },
+                                                {
+                                                    "operator": "==",
+                                                    "thresholdValue": "Acknowledged",
+                                                    "representation": "1",
+                                                    "text": "{0}{1}"
+                                                },
+                                                {
+                                                    "operator": "Default",
+                                                    "thresholdValue": null,
+                                                    "representation": "success",
+                                                    "text": "{0}{1}"
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "columnMatch": "MonitorCondition",
+                                        "formatter": 18,
+                                        "formatOptions": {
+                                            "thresholdsOptions": "icons",
+                                            "thresholdsGrid": [
+                                                {
+                                                    "operator": "==",
+                                                    "thresholdValue": "Resolved",
+                                                    "representation": "success",
+                                                    "text": "{0}{1}"
+                                                },
+                                                {
+                                                    "operator": "Default",
+                                                    "thresholdValue": null,
+                                                    "representation": "warning",
+                                                    "text": "{0}{1}"
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "columnMatch": "Name",
+                                        "formatter": 1,
+                                        "formatOptions": {
+                                            "linkTarget": "OpenBlade",
+                                            "linkIsContextBlade": true,
+                                            "bladeOpenContext": {
+                                                "bladeName": "AlertDetailsTemplateBlade",
+                                                "extensionName": "Microsoft_Azure_Monitoring",
+                                                "bladeParameters": [
+                                                    {
+                                                        "name": "alertId",
+                                                        "source": "column",
+                                                        "value": "AlertId"
+                                                    },
+                                                    {
+                                                        "name": "alertName",
+                                                        "source": "column",
+                                                        "value": "Name"
+                                                    },
+                                                    {
+                                                        "name": "invokedFrom",
+                                                        "source": "static",
+                                                        "value": "Workbooks"
+                                                    }
+                                                ]
+                                            }
+                                        },
+                                        "tooltipFormat": {
+                                            "tooltip": "View alert details"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        "conditionalVisibility": {
+                            "parameterName": "NewAlertsSeverity",
+                            "comparison": "isNotEqualTo"
+                        },
+                        "name": "alertsBySeverity"
+                    }
+                ]
+            },
+            "name": "unacknowledgedAlerts",
+            "styleSettings": {
+                "padding": "20px",
+                "showBorder": true
+            }
+        },
+        {
+            "type": 12,
+            "content": {
+                "version": "NotebookGroup/1.0",
+                "groupType": "editable",
+                "items": [
+                    {
+                        "type": 1,
+                        "content": {
+                            "json": "# Acknowledged Alerts\r\nAlerts within timerange where AlertState=Acknowledged",
+                            "style": "warning"
+                        },
+                        "name": "acknowledgedAlerts"
+                    },
+                    {
+                        "type": 3,
+                        "content": {
+                            "version": "KqlItem/1.0",
+                            "query": "AlertsManagementResources | where type =~ 'microsoft.alertsmanagement/alerts'\r\n| where todatetime(properties.essentials.startDateTime) {TimeRange}  \r\n| extend AlertState=tostring(properties.essentials.alertState)\r\n| extend Severity=tostring(properties.essentials.severity)\r\n| extend Severity=case(isempty(Severity), \"Sev4\", Severity == 0, \"Sev0\", Severity == 1, \"Sev1\", Severity == 2, \"Sev2\", Severity == 3, \"Sev3\", Severity == 4, \"Sev4\", Severity)\r\n| where AlertState == \"Acknowledged\"\r\n| summarize Count=count() by Severity\r\n| order by Severity asc",
+                            "size": 4,
+                            "exportedParameters": [
+                                {
+                                    "fieldName": "Severity",
+                                    "parameterName": "AckAlertsSeverity"
+                                },
+                                {
+                                    "parameterType": 1
+                                }
+                            ],
+                            "queryType": 1,
+                            "resourceType": "microsoft.resourcegraph/resources",
+                            "crossComponentResources": [
+                                "{Subscription}"
+                            ],
+                            "visualization": "tiles",
+                            "tileSettings": {
+                                "titleContent": {
+                                    "columnMatch": "Severity",
+                                    "formatter": 18,
+                                    "formatOptions": {
+                                        "thresholdsOptions": "icons",
+                                        "thresholdsGrid": [
+                                            {
+                                                "operator": "==",
+                                                "thresholdValue": "Sev0",
+                                                "representation": "Sev0",
+                                                "text": "{0}{1}"
+                                            },
+                                            {
+                                                "operator": "==",
+                                                "thresholdValue": "Sev1",
+                                                "representation": "Sev1",
+                                                "text": "{0}{1}"
+                                            },
+                                            {
+                                                "operator": "==",
+                                                "thresholdValue": "Sev2",
+                                                "representation": "Sev2",
+                                                "text": "{0}{1}"
+                                            },
+                                            {
+                                                "operator": "==",
+                                                "thresholdValue": "Sev3",
+                                                "representation": "Sev3",
+                                                "text": "{0}{1}"
+                                            },
+                                            {
+                                                "operator": "==",
+                                                "thresholdValue": "Sev4",
+                                                "representation": "Sev4",
+                                                "text": "{0}{1}"
+                                            },
+                                            {
+                                                "operator": "Default",
+                                                "thresholdValue": null,
+                                                "representation": "success",
+                                                "text": "{0}{1}"
+                                            }
+                                        ]
+                                    }
+                                },
+                                "leftContent": {
+                                    "columnMatch": "Count",
+                                    "formatter": 18,
+                                    "formatOptions": {
+                                        "thresholdsOptions": "icons",
+                                        "thresholdsGrid": [
+                                            {
+                                                "sourceColumn": "Severity",
+                                                "operator": "==",
+                                                "thresholdValue": "Sev0",
+                                                "representation": "4",
+                                                "text": "{0}{1}"
+                                            },
+                                            {
+                                                "sourceColumn": "Severity",
+                                                "operator": "==",
+                                                "thresholdValue": "Sev1",
+                                                "representation": "3",
+                                                "text": "{0}{1}"
+                                            },
+                                            {
+                                                "sourceColumn": "Severity",
+                                                "operator": "==",
+                                                "thresholdValue": "Sev2",
+                                                "representation": "2",
+                                                "text": "{0}{1}"
+                                            },
+                                            {
+                                                "sourceColumn": "Severity",
+                                                "operator": "==",
+                                                "thresholdValue": "Sev3",
+                                                "representation": "1",
+                                                "text": "{0}{1}"
+                                            },
+                                            {
+                                                "sourceColumn": "Severity",
+                                                "operator": "==",
+                                                "thresholdValue": "Sev4",
+                                                "representation": "1",
+                                                "text": "{0}{1}"
+                                            },
+                                            {
+                                                "operator": "Default",
+                                                "thresholdValue": null,
+                                                "representation": "success",
+                                                "text": "{0}{1}"
+                                            }
+                                        ]
+                                    },
+                                    "numberFormat": {
+                                        "unit": 17,
+                                        "options": {
+                                            "style": "decimal",
+                                            "maximumFractionDigits": 2,
+                                            "maximumSignificantDigits": 3
+                                        }
+                                    }
+                                },
+                                "showBorder": true
+                            }
+                        },
+                        "name": "acknowledgedAlerts"
+                    },
+                    {
+                        "type": 3,
+                        "content": {
+                            "version": "KqlItem/1.0",
+                            "query": "AlertsManagementResources | where type =~ 'microsoft.alertsmanagement/alerts'\r\n| where todatetime(properties.essentials.startDateTime) {TimeRange}  \r\n| extend Severity=tostring(properties.essentials.severity)\r\n| extend Severity=case(isempty(Severity), \"Sev4\", Severity == 0, \"Sev0\", Severity == 1, \"Sev1\", Severity == 2, \"Sev2\", Severity == 3, \"Sev3\", Severity == 4, \"Sev4\", Severity)\r\n| where Severity == \"{AckAlertsSeverity}\"\r\n| extend AlertState=tostring(properties.essentials.alertState)\r\n| where AlertState == \"Acknowledged\"\r\n| project AlertId=id, \r\n    StartTime=todatetime(tostring(properties.essentials.startDateTime)), \r\n    Severity, \r\n    AlertState=tostring(properties.essentials.alertState),\r\n    MonitorCondition=tostring(properties.essentials.monitorCondition),\r\n    Name=name,\r\n    TargetResource = tostring(properties.essentials.targetResource), \r\n    SignalType=tostring(properties.essentials.signalType), \r\n    Description=tostring(properties.essentials.description)\r\n| order by StartTime desc\r\n",
+                            "size": 1,
+                            "title": "{AckAlertsSeverity} Alerts",
+                            "queryType": 1,
+                            "resourceType": "microsoft.resourcegraph/resources",
+                            "crossComponentResources": [
+                                "{Subscription}"
+                            ],
+                            "gridSettings": {
+                                "formatters": [
+                                    {
+                                        "columnMatch": "AlertId",
+                                        "formatter": 5
+                                    },
+                                    {
+                                        "columnMatch": "StartTime",
+                                        "formatter": 6
+                                    },
+                                    {
+                                        "columnMatch": "Severity",
+                                        "formatter": 18,
+                                        "formatOptions": {
+                                            "thresholdsOptions": "icons",
+                                            "thresholdsGrid": [
+                                                {
+                                                    "operator": "==",
+                                                    "thresholdValue": "Sev0",
+                                                    "representation": "4",
+                                                    "text": "{0}{1}"
+                                                },
+                                                {
+                                                    "operator": "==",
+                                                    "thresholdValue": "Sev1",
+                                                    "representation": "3",
+                                                    "text": "{0}{1}"
+                                                },
+                                                {
+                                                    "operator": "==",
+                                                    "thresholdValue": "Sev2",
+                                                    "representation": "2",
+                                                    "text": "{0}{1}"
+                                                },
+                                                {
+                                                    "operator": "==",
+                                                    "thresholdValue": "Sev3",
+                                                    "representation": "1",
+                                                    "text": "{0}{1}"
+                                                },
+                                                {
+                                                    "operator": "==",
+                                                    "thresholdValue": "Sev4",
+                                                    "representation": "info",
+                                                    "text": "{0}{1}"
+                                                },
+                                                {
+                                                    "operator": "Default",
+                                                    "thresholdValue": null,
+                                                    "representation": "success",
+                                                    "text": "{0}{1}"
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "columnMatch": "AlertState",
+                                        "formatter": 18,
+                                        "formatOptions": {
+                                            "thresholdsOptions": "icons",
+                                            "thresholdsGrid": [
+                                                {
+                                                    "operator": "==",
+                                                    "thresholdValue": "New",
+                                                    "representation": "2",
+                                                    "text": "{0}{1}"
+                                                },
+                                                {
+                                                    "operator": "==",
+                                                    "thresholdValue": "Acknowledged",
+                                                    "representation": "1",
+                                                    "text": "{0}{1}"
+                                                },
+                                                {
+                                                    "operator": "Default",
+                                                    "thresholdValue": null,
+                                                    "representation": "success",
+                                                    "text": "{0}{1}"
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "columnMatch": "MonitorCondition",
+                                        "formatter": 18,
+                                        "formatOptions": {
+                                            "thresholdsOptions": "icons",
+                                            "thresholdsGrid": [
+                                                {
+                                                    "operator": "==",
+                                                    "thresholdValue": "Resolved",
+                                                    "representation": "success",
+                                                    "text": "{0}{1}"
+                                                },
+                                                {
+                                                    "operator": "Default",
+                                                    "thresholdValue": null,
+                                                    "representation": "warning",
+                                                    "text": "{0}{1}"
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "columnMatch": "Name",
+                                        "formatter": 1,
+                                        "formatOptions": {
+                                            "linkTarget": "OpenBlade",
+                                            "linkIsContextBlade": true,
+                                            "bladeOpenContext": {
+                                                "bladeName": "AlertDetailsTemplateBlade",
+                                                "extensionName": "Microsoft_Azure_Monitoring",
+                                                "bladeParameters": [
+                                                    {
+                                                        "name": "alertId",
+                                                        "source": "column",
+                                                        "value": "AlertId"
+                                                    },
+                                                    {
+                                                        "name": "alertName",
+                                                        "source": "column",
+                                                        "value": "Name"
+                                                    },
+                                                    {
+                                                        "name": "invokedFrom",
+                                                        "source": "static",
+                                                        "value": "Workbooks"
+                                                    }
+                                                ]
+                                            }
+                                        },
+                                        "tooltipFormat": {
+                                            "tooltip": "View alert details"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        "conditionalVisibility": {
+                            "parameterName": "AckAlertsSeverity",
+                            "comparison": "isNotEqualTo"
+                        },
+                        "name": "acknowledgedAlertsBySeverity"
+                    }
+                ]
+            },
+            "name": "acknowledgedAlerts",
+            "styleSettings": {
+                "padding": "20px",
+                "showBorder": true
+            }
+        },
+        {
+            "type": 12,
+            "content": {
+                "version": "NotebookGroup/1.0",
+                "groupType": "editable",
+                "items": [
+                    {
+                        "type": 1,
+                        "content": {
+                            "json": "# Closed Alerts\r\nAlerts within timerange where AlertState=Closed",
+                            "style": "info"
+                        },
+                        "name": "closedAlertsTitle"
+                    },
+                    {
+                        "type": 3,
+                        "content": {
+                            "version": "KqlItem/1.0",
+                            "query": "AlertsManagementResources | where type =~ 'microsoft.alertsmanagement/alerts'\r\n| where todatetime(properties.essentials.startDateTime) {TimeRange}  \r\n| extend AlertState=tostring(properties.essentials.alertState)\r\n| extend Severity=tostring(properties.essentials.severity)\r\n| extend Severity=case(isempty(Severity), \"Sev4\", Severity == 0, \"Sev0\", Severity == 1, \"Sev1\", Severity == 2, \"Sev2\", Severity == 3, \"Sev3\", Severity == 4, \"Sev4\", Severity)\r\n| where AlertState == \"Closed\"\r\n| summarize Count=count() by Severity\r\n| order by Severity asc",
+                            "size": 4,
+                            "exportedParameters": [
+                                {
+                                    "fieldName": "Severity",
+                                    "parameterName": "ClosedAlertsSeverity"
+                                },
+                                {
+                                    "parameterType": 1
+                                }
+                            ],
+                            "queryType": 1,
+                            "resourceType": "microsoft.resourcegraph/resources",
+                            "crossComponentResources": [
+                                "{Subscription}"
+                            ],
+                            "visualization": "tiles",
+                            "tileSettings": {
+                                "titleContent": {
+                                    "columnMatch": "Severity",
+                                    "formatter": 18,
+                                    "formatOptions": {
+                                        "thresholdsOptions": "icons",
+                                        "thresholdsGrid": [
+                                            {
+                                                "operator": "==",
+                                                "thresholdValue": "Sev0",
+                                                "representation": "Sev0",
+                                                "text": "{0}{1}"
+                                            },
+                                            {
+                                                "operator": "==",
+                                                "thresholdValue": "Sev1",
+                                                "representation": "Sev1",
+                                                "text": "{0}{1}"
+                                            },
+                                            {
+                                                "operator": "==",
+                                                "thresholdValue": "Sev2",
+                                                "representation": "Sev2",
+                                                "text": "{0}{1}"
+                                            },
+                                            {
+                                                "operator": "==",
+                                                "thresholdValue": "Sev3",
+                                                "representation": "Sev3",
+                                                "text": "{0}{1}"
+                                            },
+                                            {
+                                                "operator": "==",
+                                                "thresholdValue": "Sev4",
+                                                "representation": "Sev4",
+                                                "text": "{0}{1}"
+                                            },
+                                            {
+                                                "operator": "Default",
+                                                "thresholdValue": null,
+                                                "representation": "success",
+                                                "text": "{0}{1}"
+                                            }
+                                        ]
+                                    }
+                                },
+                                "leftContent": {
+                                    "columnMatch": "Count",
+                                    "formatter": 12,
+                                    "formatOptions": {
+                                        "palette": "red"
+                                    },
+                                    "numberFormat": {
+                                        "unit": 17,
+                                        "options": {
+                                            "style": "decimal",
+                                            "maximumFractionDigits": 2,
+                                            "maximumSignificantDigits": 3
+                                        }
+                                    }
+                                },
+                                "showBorder": true
+                            }
+                        },
+                        "name": "closedAlerts"
+                    },
+                    {
+                        "type": 3,
+                        "content": {
+                            "version": "KqlItem/1.0",
+                            "query": "AlertsManagementResources | where type =~ 'microsoft.alertsmanagement/alerts'\r\n| where todatetime(properties.essentials.startDateTime) {TimeRange}  \r\n| extend Severity=tostring(properties.essentials.severity)\r\n| extend Severity=case(isempty(Severity), \"Sev4\", Severity == 0, \"Sev0\", Severity == 1, \"Sev1\", Severity == 2, \"Sev2\", Severity == 3, \"Sev3\", Severity == 4, \"Sev4\", Severity)\r\n| where Severity == \"{ClosedAlertsSeverity}\"\r\n| extend AlertState=tostring(properties.essentials.alertState)\r\n| where AlertState == \"Closed\"\r\n| project AlertId=id, \r\n    StartTime=todatetime(tostring(properties.essentials.startDateTime)), \r\n    Severity, \r\n    AlertState=tostring(properties.essentials.alertState),\r\n    MonitorCondition=tostring(properties.essentials.monitorCondition),\r\n    Name=name,\r\n    TargetResource = tostring(properties.essentials.targetResource), \r\n    SignalType=tostring(properties.essentials.signalType), \r\n    Description=tostring(properties.essentials.description)\r\n| order by StartTime desc\r\n",
+                            "size": 1,
+                            "title": "{ClosedAlertsSeverity} Alerts",
+                            "queryType": 1,
+                            "resourceType": "microsoft.resourcegraph/resources",
+                            "crossComponentResources": [
+                                "{Subscription}"
+                            ],
+                            "gridSettings": {
+                                "formatters": [
+                                    {
+                                        "columnMatch": "AlertId",
+                                        "formatter": 5
+                                    },
+                                    {
+                                        "columnMatch": "StartTime",
+                                        "formatter": 6
+                                    },
+                                    {
+                                        "columnMatch": "Severity",
+                                        "formatter": 18,
+                                        "formatOptions": {
+                                            "thresholdsOptions": "icons",
+                                            "thresholdsGrid": [
+                                                {
+                                                    "operator": "==",
+                                                    "thresholdValue": "Sev0",
+                                                    "representation": "4",
+                                                    "text": "{0}{1}"
+                                                },
+                                                {
+                                                    "operator": "==",
+                                                    "thresholdValue": "Sev1",
+                                                    "representation": "3",
+                                                    "text": "{0}{1}"
+                                                },
+                                                {
+                                                    "operator": "==",
+                                                    "thresholdValue": "Sev2",
+                                                    "representation": "2",
+                                                    "text": "{0}{1}"
+                                                },
+                                                {
+                                                    "operator": "==",
+                                                    "thresholdValue": "Sev3",
+                                                    "representation": "1",
+                                                    "text": "{0}{1}"
+                                                },
+                                                {
+                                                    "operator": "==",
+                                                    "thresholdValue": "Sev4",
+                                                    "representation": "info",
+                                                    "text": "{0}{1}"
+                                                },
+                                                {
+                                                    "operator": "Default",
+                                                    "thresholdValue": null,
+                                                    "representation": "success",
+                                                    "text": "{0}{1}"
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "columnMatch": "AlertState",
+                                        "formatter": 18,
+                                        "formatOptions": {
+                                            "thresholdsOptions": "icons",
+                                            "thresholdsGrid": [
+                                                {
+                                                    "operator": "==",
+                                                    "thresholdValue": "New",
+                                                    "representation": "2",
+                                                    "text": "{0}{1}"
+                                                },
+                                                {
+                                                    "operator": "==",
+                                                    "thresholdValue": "Acknowledged",
+                                                    "representation": "1",
+                                                    "text": "{0}{1}"
+                                                },
+                                                {
+                                                    "operator": "Default",
+                                                    "thresholdValue": null,
+                                                    "representation": "success",
+                                                    "text": "{0}{1}"
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "columnMatch": "MonitorCondition",
+                                        "formatter": 18,
+                                        "formatOptions": {
+                                            "thresholdsOptions": "icons",
+                                            "thresholdsGrid": [
+                                                {
+                                                    "operator": "==",
+                                                    "thresholdValue": "Resolved",
+                                                    "representation": "success",
+                                                    "text": "{0}{1}"
+                                                },
+                                                {
+                                                    "operator": "Default",
+                                                    "thresholdValue": null,
+                                                    "representation": "warning",
+                                                    "text": "{0}{1}"
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "columnMatch": "Name",
+                                        "formatter": 1,
+                                        "formatOptions": {
+                                            "linkTarget": "OpenBlade",
+                                            "linkIsContextBlade": true,
+                                            "bladeOpenContext": {
+                                                "bladeName": "AlertDetailsTemplateBlade",
+                                                "extensionName": "Microsoft_Azure_Monitoring",
+                                                "bladeParameters": [
+                                                    {
+                                                        "name": "alertId",
+                                                        "source": "column",
+                                                        "value": "AlertId"
+                                                    },
+                                                    {
+                                                        "name": "alertName",
+                                                        "source": "column",
+                                                        "value": "Name"
+                                                    },
+                                                    {
+                                                        "name": "invokedFrom",
+                                                        "source": "static",
+                                                        "value": "Workbooks"
+                                                    }
+                                                ]
+                                            }
+                                        },
+                                        "tooltipFormat": {
+                                            "tooltip": "View alert details"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        "conditionalVisibility": {
+                            "parameterName": "ClosedAlertsSeverity",
+                            "comparison": "isNotEqualTo"
+                        },
+                        "name": "closedAlertsBySeverity"
+                    }
+                ]
+            },
+            "name": "closedAlerts",
+            "styleSettings": {
+                "padding": "20px",
+                "showBorder": true
+            }
         }
     ],
-    "styleSettings": {},
+    "fallbackResourceIds": [
+        "azure monitor"
+    ],
     "$schema": "https://github.com/Microsoft/Application-Insights-Workbooks/blob/master/schema/workbook.json"
 }
