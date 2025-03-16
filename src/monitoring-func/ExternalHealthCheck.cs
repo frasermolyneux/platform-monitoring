@@ -8,6 +8,8 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using Polly;
+using Polly.Retry;
 
 namespace MX.Platform.MonitoringFunc;
 
@@ -16,6 +18,10 @@ public class ExternalHealthCheck
     private readonly IConfiguration configuration;
     private readonly TelemetryClient telemetryClient;
     public Dictionary<string, TelemetryClient> telemetryClients { get; set; } = new Dictionary<string, TelemetryClient>();
+
+    private readonly AsyncRetryPolicy<HttpResponseMessage> retryPolicy = Policy
+        .HandleResult<HttpResponseMessage>(r => !r.IsSuccessStatusCode)
+        .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
 
     public ExternalHealthCheck(IConfiguration configuration, TelemetryClient telemetryClient)
     {
@@ -104,7 +110,7 @@ public class ExternalHealthCheck
         // Create a new HttpClient and send a request to the configured URI and validate that the response is a 200 OK, otherwise throw an exception
         using (var httpClient = new HttpClient())
         {
-            var response = await httpClient.GetAsync(uri);
+            var response = await retryPolicy.ExecuteAsync(() => httpClient.GetAsync(uri));
             if (!response.IsSuccessStatusCode)
             {
                 telemetryClient.TrackTrace(response.Content.ReadAsStringAsync().Result);
