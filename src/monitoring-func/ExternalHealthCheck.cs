@@ -19,14 +19,22 @@ public class ExternalHealthCheck
     private readonly TelemetryClient telemetryClient;
     public Dictionary<string, TelemetryClient> telemetryClients { get; set; } = new Dictionary<string, TelemetryClient>();
 
-    private readonly AsyncRetryPolicy<HttpResponseMessage> retryPolicy = Policy
-        .HandleResult<HttpResponseMessage>(r => !r.IsSuccessStatusCode)
-        .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
+    private readonly AsyncRetryPolicy<HttpResponseMessage> retryPolicy;
 
     public ExternalHealthCheck(IConfiguration configuration, TelemetryClient telemetryClient)
     {
         this.configuration = configuration;
         this.telemetryClient = telemetryClient;
+
+        retryPolicy = Policy
+            .Handle<HttpRequestException>()
+            .OrResult<HttpResponseMessage>(r => !r.IsSuccessStatusCode)
+            .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
+                onRetry: (outcome, timespan, retryAttempt, context) =>
+                {
+                    var message = $"Request failed with {outcome.Exception?.Message ?? outcome.Result.StatusCode.ToString()}. Waiting {timespan} before next retry. Retry attempt {retryAttempt}";
+                    telemetryClient.TrackException(outcome.Exception ?? new Exception(message));
+                });
     }
 
     [Function(nameof(ExternalHealthCheck))]
