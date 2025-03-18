@@ -116,8 +116,10 @@ public class ExternalHealthCheck
         }
 
         // Create a new HttpClient and send a request to the configured URI and validate that the response is a 200 OK, otherwise throw an exception
-        using (var httpClient = new HttpClient())
+        using (var httpClient = new HttpClient()))
         {
+            httpClient.Timeout = TimeSpan.FromSeconds(10);
+
             var response = await retryPolicy.ExecuteAsync(() => httpClient.GetAsync(uri));
             if (!response.IsSuccessStatusCode)
             {
