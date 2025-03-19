@@ -11,7 +11,8 @@ resource "azurerm_monitor_activity_log_alert" "subscription_service_health_alert
     category = "ServiceHealth"
 
     service_health {
-      events = ["Incident"]
+      events    = ["Incident"]
+      locations = [var.location]
     }
   }
 
@@ -40,7 +41,8 @@ resource "azurerm_monitor_activity_log_alert" "subscription_service_health_alert
     category = "ServiceHealth"
 
     service_health {
-      events = ["Maintenance"]
+      events    = ["Maintenance"]
+      locations = [var.location]
     }
   }
 
@@ -69,7 +71,8 @@ resource "azurerm_monitor_activity_log_alert" "subscription_service_health_alert
     category = "ServiceHealth"
 
     service_health {
-      events = ["Informational"]
+      events    = ["Informational"]
+      locations = [var.location]
     }
   }
 
@@ -98,7 +101,8 @@ resource "azurerm_monitor_activity_log_alert" "subscription_service_health_alert
     category = "ServiceHealth"
 
     service_health {
-      events = ["ActionRequired"]
+      events    = ["ActionRequired"]
+      locations = [var.location]
     }
   }
 
@@ -127,7 +131,8 @@ resource "azurerm_monitor_activity_log_alert" "subscription_service_health_alert
     category = "ServiceHealth"
 
     service_health {
-      events = ["Security"]
+      events    = ["Security"]
+      locations = [var.location]
     }
   }
 
