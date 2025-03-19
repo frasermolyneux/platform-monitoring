@@ -28,12 +28,18 @@ public class ExternalHealthCheck
 
         retryPolicy = Policy
             .Handle<HttpRequestException>()
+            .Or<TaskCanceledException>()
             .OrResult<HttpResponseMessage>(r => !r.IsSuccessStatusCode)
             .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
                 onRetry: (outcome, timespan, retryAttempt, context) =>
                 {
                     var message = $"Request failed with {outcome.Exception?.Message ?? outcome.Result.StatusCode.ToString()}. Waiting {timespan} before next retry. Retry attempt {retryAttempt}";
                     telemetryClient.TrackException(outcome.Exception ?? new Exception(message));
+
+                    if (outcome.Result != null && !outcome.Result.IsSuccessStatusCode)
+                    {
+                        telemetryClient.TrackTrace(outcome.Result.Content.ReadAsStringAsync().Result);
+                    }
                 });
     }
 
