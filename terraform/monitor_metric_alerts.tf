@@ -24,6 +24,9 @@ resource "azurerm_monitor_metric_alert" "availability" {
 
   severity = each.value.severity
 
+  frequency   = "PT1M"
+  window_size = "PT30M"
+
   action {
     action_group_id = local.action_group_map[each.value.severity].id
   }
