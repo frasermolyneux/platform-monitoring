@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
 
     - uses: frasermolyneux/actions/dotnet-func-ci@main
       with:
@@ -36,7 +36,7 @@ jobs:
       group: ${{ github.repository }}-dev
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
 
     - uses: frasermolyneux/actions/terraform-plan-and-apply@main
       with:
@@ -74,7 +74,7 @@ jobs:
         subscription: ${{ fromJSON(needs.terraform-plan-and-apply-dev.outputs.subscriptions) }}
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
 
     - uses: frasermolyneux/actions/terraform-plan-and-apply@main
       with:
@@ -97,7 +97,7 @@ jobs:
         func_app: ${{ fromJSON(needs.terraform-plan-and-apply-dev.outputs.func_apps) }}
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
 
     - uses: frasermolyneux/actions/deploy-function-app@main
       with:
@@ -116,7 +116,7 @@ jobs:
       group: ${{ github.repository }}-prd
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
 
     - uses: frasermolyneux/actions/terraform-plan-and-apply@main
       with:
@@ -154,7 +154,7 @@ jobs:
         subscription: ${{ fromJSON(needs.terraform-plan-and-apply-prd.outputs.subscriptions) }}
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
 
     - uses: frasermolyneux/actions/terraform-plan-and-apply@main
       with:
@@ -177,7 +177,7 @@ jobs:
         func_app: ${{ fromJSON(needs.terraform-plan-and-apply-prd.outputs.func_apps) }}
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
 
     - uses: frasermolyneux/actions/deploy-function-app@main
       with:
