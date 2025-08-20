@@ -84,11 +84,19 @@ availability_tests = [
     severity     = 0
   },
   {
-    workload     = "portal-repository"
+    workload     = "portal-repository-v1"
     environment  = "prd"
-    app          = "app-portal-repo-prd-uksouth-01-b8f876e0fb09"
+    app          = "app-portal-repo-prd-uksouth-v1-b8f876e0fb09"
     app_insights = "portal"
-    uri          = "https://app-portal-repo-prd-uksouth-01-b8f876e0fb09.azurewebsites.net/api/health"
+    uri          = "https://app-portal-repo-prd-uksouth-v1-b8f876e0fb09.azurewebsites.net/api/health"
+    severity     = 0
+  },
+  {
+    workload     = "portal-repository-v2"
+    environment  = "prd"
+    app          = "app-portal-repo-prd-uksouth-v2-b8f876e0fb09"
+    app_insights = "portal"
+    uri          = "https://app-portal-repo-prd-uksouth-v2-b8f876e0fb09.azurewebsites.net/api/health"
     severity     = 0
   },
   {

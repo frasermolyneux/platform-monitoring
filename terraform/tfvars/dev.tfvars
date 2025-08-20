@@ -52,11 +52,19 @@ availability_tests = [
     severity     = 4
   },
   {
-    workload     = "portal-repository"
+    workload     = "portal-repository-v1"
     environment  = "dev"
-    app          = "app-portal-repo-dev-uksouth-01-ebd9159c6051"
+    app          = "app-portal-repo-dev-uksouth-v1-ebd9159c6051"
     app_insights = "portal"
-    uri          = "https://app-portal-repo-dev-uksouth-01-ebd9159c6051.azurewebsites.net/api/health"
+    uri          = "https://app-portal-repo-dev-uksouth-v1-ebd9159c6051.azurewebsites.net/api/health"
+    severity     = 4
+  },
+  {
+    workload     = "portal-repository-v2"
+    environment  = "dev"
+    app          = "app-portal-repo-dev-uksouth-v2-ebd9159c6051"
+    app_insights = "portal"
+    uri          = "https://app-portal-repo-dev-uksouth-v2-ebd9159c6051.azurewebsites.net/api/health"
     severity     = 4
   },
   {
