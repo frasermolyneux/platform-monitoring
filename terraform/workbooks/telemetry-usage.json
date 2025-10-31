@@ -1,0 +1,424 @@
+{
+    "version": "Notebook/1.0",
+    "items": [
+        {
+            "type": 9,
+            "content": {
+                "version": "KqlParameterItem/1.0",
+                "parameters": [
+                    {
+                        "id": "8f8a1c25-6f3b-47d4-b841-3d5201fa4f1c",
+                        "version": "KqlParameterItem/1.0",
+                        "name": "Subscription",
+                        "type": 6,
+                        "isRequired": true,
+                        "multiSelect": true,
+                        "quote": "'",
+                        "delimiter": ",",
+                        "typeSettings": {
+                            "additionalResourceOptions": [
+                                "value::all"
+                            ],
+                            "includeAll": false,
+                            "showDefault": false
+                        },
+                        "timeContext": {
+                            "durationMs": 86400000
+                        },
+                        "defaultValue": "value::all",
+                        "value": [
+                            "value::all"
+                        ]
+                    },
+                    {
+                        "id": "9d1e3cfb-d984-4f9f-9f3e-3ac8a4e932a6",
+                        "version": "KqlParameterItem/1.0",
+                        "name": "LogAnalyticsWorkspaces",
+                        "type": 6,
+                        "isRequired": false,
+                        "multiSelect": true,
+                        "quote": "'",
+                        "delimiter": ",",
+                        "typeSettings": {
+                            "resourceType": "microsoft.operationalinsights/workspaces",
+                            "additionalResourceOptions": [
+                                "value::all"
+                            ],
+                            "includeAll": true,
+                            "selectAllValue": "value::all",
+                            "showDefault": false
+                        },
+                        "defaultValue": "value::all",
+                        "value": [
+                            "value::all"
+                        ]
+                    },
+                    {
+                        "id": "1bf466c1-3895-4b72-8ec0-3f1cc7d2b874",
+                        "version": "KqlParameterItem/1.0",
+                        "name": "AppInsightsResources",
+                        "type": 6,
+                        "isRequired": false,
+                        "multiSelect": true,
+                        "quote": "'",
+                        "delimiter": ",",
+                        "typeSettings": {
+                            "resourceType": "microsoft.insights/components",
+                            "additionalResourceOptions": [
+                                "value::all"
+                            ],
+                            "includeAll": true,
+                            "selectAllValue": "value::all",
+                            "showDefault": false
+                        },
+                        "defaultValue": "value::all",
+                        "value": [
+                            "value::all"
+                        ]
+                    },
+                    {
+                        "id": "0cf6a715-1d0a-42db-a9c4-6f6728bf8ee9",
+                        "version": "KqlParameterItem/1.0",
+                        "name": "TimeRange",
+                        "type": 4,
+                        "isRequired": true,
+                        "typeSettings": {
+                            "selectableValues": [
+                                {
+                                    "durationMs": 300000
+                                },
+                                {
+                                    "durationMs": 900000
+                                },
+                                {
+                                    "durationMs": 1800000
+                                },
+                                {
+                                    "durationMs": 3600000
+                                },
+                                {
+                                    "durationMs": 14400000
+                                },
+                                {
+                                    "durationMs": 43200000
+                                },
+                                {
+                                    "durationMs": 86400000
+                                },
+                                {
+                                    "durationMs": 172800000
+                                },
+                                {
+                                    "durationMs": 259200000
+                                },
+                                {
+                                    "durationMs": 604800000
+                                },
+                                {
+                                    "durationMs": 1209600000
+                                },
+                                {
+                                    "durationMs": 2419200000
+                                },
+                                {
+                                    "durationMs": 2592000000
+                                },
+                                {
+                                    "durationMs": 5184000000
+                                },
+                                {
+                                    "durationMs": 7776000000
+                                }
+                            ],
+                            "allowCustom": true
+                        },
+                        "timeContext": {
+                            "durationMs": 604800000
+                        },
+                        "value": {
+                            "durationMs": 604800000
+                        }
+                    }
+                ],
+                "style": "pills",
+                "queryType": 0,
+                "resourceType": "microsoft.operationalinsights/workspaces"
+            },
+            "name": "parameters"
+        },
+        {
+            "type": 1,
+            "content": {
+                "json": "# Telemetry Usage & Cost Insights",
+                "style": "info"
+            },
+            "name": "telemetryOverviewTitle"
+        },
+        {
+            "type": 1,
+            "content": {
+                "json": "Use this workbook to pinpoint the Log Analytics workspaces and Application Insights components that generate the most billable data volume, understand cost trends, and identify optimisation opportunities before adjusting ingestion policies or sampling settings.",
+                "style": "info"
+            },
+            "name": "telemetryOverviewDescription"
+        },
+        {
+            "type": 12,
+            "content": {
+                "version": "NotebookGroup/1.0",
+                "groupType": "editable",
+                "items": [
+                    {
+                        "type": 1,
+                        "content": {
+                            "json": "## Log Analytics Usage",
+                            "style": "info"
+                        },
+                        "name": "logAnalyticsTitle"
+                    },
+                    {
+                        "type": 3,
+                        "content": {
+                            "version": "KqlItem/1.0",
+                            "query": "Usage\r\n| where TimeGenerated {TimeRange}\r\n| where column_ifexists(\"IsBillable\", true)\r\n| summarize IngestedGB = round(sum(todouble(Quantity)), 2), EstimatedCost = round(sum(todouble(Cost)), 2), Currency = any(tostring(column_ifexists(\"Currency\", \"USD\")))\r\n| extend TileData = pack_array(\r\n        pack(\"Metric\", \"Billable Ingested GB\", \"Value\", IngestedGB, \"Unit\", \"GB\"),\r\n        pack(\"Metric\", \"Estimated Cost\", \"Value\", EstimatedCost, \"Unit\", iif(isempty(Currency), \"USD\", Currency))\r\n    )\r\n| mv-expand TileData\r\n| extend Metric = tostring(TileData.Metric), Value = todouble(TileData.Value), Unit = tostring(TileData.Unit)\r\n| project Metric, Value, Unit",
+                            "size": 0,
+                            "title": "Billable volume and estimated cost",
+                            "queryType": 0,
+                            "resourceType": "microsoft.operationalinsights/workspaces",
+                            "crossComponentResources": [
+                                "{LogAnalyticsWorkspaces}"
+                            ],
+                            "visualization": "tiles",
+                            "tileSettings": {
+                                "titleContent": {
+                                    "columnMatch": "Metric",
+                                    "formatter": 1
+                                },
+                                "subtitleContent": {
+                                    "columnMatch": "Unit",
+                                    "formatter": 1
+                                },
+                                "leftContent": {
+                                    "columnMatch": "Value",
+                                    "formatter": 18,
+                                    "numberFormat": {
+                                        "unit": 17,
+                                        "options": {
+                                            "style": "decimal",
+                                            "maximumFractionDigits": 2,
+                                            "maximumSignificantDigits": 4
+                                        }
+                                    }
+                                },
+                                "showBorder": true
+                            }
+                        },
+                        "name": "logAnalyticsSummaryTiles"
+                    },
+                    {
+                        "type": 3,
+                        "content": {
+                            "version": "KqlItem/1.0",
+                            "query": "Usage\r\n| where TimeGenerated {TimeRange}\r\n| where column_ifexists(\"IsBillable\", true)\r\n| extend WorkspaceName = extract(@\"([^/]+)$\", 1, _ResourceId)\r\n| summarize BillableGB = round(sum(todouble(Quantity)), 3) by bin(TimeGenerated, 1d), WorkspaceName\r\n| order by TimeGenerated asc",
+                            "size": 1,
+                            "title": "Daily billable ingestion by workspace (GB)",
+                            "queryType": 0,
+                            "resourceType": "microsoft.operationalinsights/workspaces",
+                            "crossComponentResources": [
+                                "{LogAnalyticsWorkspaces}"
+                            ],
+                            "visualization": "linechart"
+                        },
+                        "name": "logAnalyticsDailyIngestion"
+                    },
+                    {
+                        "type": 3,
+                        "content": {
+                            "version": "KqlItem/1.0",
+                            "query": "let usageData = Usage\r\n    | where TimeGenerated {TimeRange}\r\n    | where column_ifexists(\"IsBillable\", true)\r\n    | extend WorkspaceName = extract(@\"([^/]+)$\", 1, _ResourceId)\r\n    | summarize IngestedGB = round(sum(todouble(Quantity)), 2), EstimatedCost = round(sum(todouble(Cost)), 2) by WorkspaceName, DataType;\r\nlet totalGB = toscalar(usageData | summarize sum(IngestedGB));\r\nlet totalCost = toscalar(usageData | summarize sum(EstimatedCost));\r\nusageData\r\n| extend PercentOfGB = round(iif(totalGB == 0, 0, IngestedGB * 100.0 / totalGB), 2)\r\n| extend PercentOfCost = round(iif(totalCost == 0, 0, EstimatedCost * 100.0 / totalCost), 2)\r\n| extend CostPerGB = round(iif(IngestedGB == 0, 0, EstimatedCost / IngestedGB), 2)\r\n| sort by EstimatedCost desc\r\n| project WorkspaceName, DataType, IngestedGB, PercentOfGB, EstimatedCost, PercentOfCost, CostPerGB\r\n| take 25",
+                            "size": 2,
+                            "title": "Top data types driving workspace cost",
+                            "queryType": 0,
+                            "resourceType": "microsoft.operationalinsights/workspaces",
+                            "crossComponentResources": [
+                                "{LogAnalyticsWorkspaces}"
+                            ],
+                            "visualization": "table",
+                            "gridSettings": {
+                                "filter": true,
+                                "sortBy": [
+                                    {
+                                        "direction": "desc",
+                                        "column": "EstimatedCost"
+                                    }
+                                ]
+                            }
+                        },
+                        "name": "logAnalyticsTopDataTypes"
+                    },
+                    {
+                        "type": 3,
+                        "content": {
+                            "version": "KqlItem/1.0",
+                            "query": "Usage\r\n| where TimeGenerated {TimeRange}\r\n| where column_ifexists(\"IsBillable\", true)\r\n| extend WorkspaceName = extract(@\"([^/]+)$\", 1, _ResourceId)\r\n| summarize IngestedGB = round(sum(todouble(Quantity)), 2), EstimatedCost = round(sum(todouble(Cost)), 2) by WorkspaceName, Solution\r\n| sort by EstimatedCost desc\r\n| project WorkspaceName, Solution = coalesce(Solution, \"(unassigned)\"), IngestedGB, EstimatedCost\r\n| take 25",
+                            "size": 1,
+                            "title": "Solution contribution to ingestion",
+                            "queryType": 0,
+                            "resourceType": "microsoft.operationalinsights/workspaces",
+                            "crossComponentResources": [
+                                "{LogAnalyticsWorkspaces}"
+                            ],
+                            "visualization": "table",
+                            "gridSettings": {
+                                "filter": true,
+                                "sortBy": [
+                                    {
+                                        "direction": "desc",
+                                        "column": "EstimatedCost"
+                                    }
+                                ]
+                            }
+                        },
+                        "name": "logAnalyticsSolutionBreakdown"
+                    }
+                ]
+            },
+            "name": "logAnalyticsGroup",
+            "styleSettings": {
+                "padding": "20px",
+                "showBorder": true
+            }
+        },
+        {
+            "type": 12,
+            "content": {
+                "version": "NotebookGroup/1.0",
+                "groupType": "editable",
+                "items": [
+                    {
+                        "type": 1,
+                        "content": {
+                            "json": "## Application Insights Usage",
+                            "style": "info"
+                        },
+                        "name": "appInsightsTitle"
+                    },
+                    {
+                        "type": 3,
+                        "content": {
+                            "version": "KqlItem/1.0",
+                            "query": "Usage\r\n| where TimeGenerated {TimeRange}\r\n| where column_ifexists(\"IsBillable\", true)\r\n| summarize IngestedGB = round(sum(todouble(Quantity)), 2), EstimatedCost = round(sum(todouble(Cost)), 2), Currency = any(tostring(column_ifexists(\"Currency\", \"USD\")))\r\n| extend TileData = pack_array(\r\n        pack(\"Metric\", \"Billable Ingested GB\", \"Value\", IngestedGB, \"Unit\", \"GB\"),\r\n        pack(\"Metric\", \"Estimated Cost\", \"Value\", EstimatedCost, \"Unit\", iif(isempty(Currency), \"USD\", Currency))\r\n    )\r\n| mv-expand TileData\r\n| extend Metric = tostring(TileData.Metric), Value = todouble(TileData.Value), Unit = tostring(TileData.Unit)\r\n| project Metric, Value, Unit",
+                            "size": 0,
+                            "title": "Billable volume and estimated cost",
+                            "queryType": 0,
+                            "resourceType": "microsoft.insights/components",
+                            "crossComponentResources": [
+                                "{AppInsightsResources}"
+                            ],
+                            "visualization": "tiles",
+                            "tileSettings": {
+                                "titleContent": {
+                                    "columnMatch": "Metric",
+                                    "formatter": 1
+                                },
+                                "subtitleContent": {
+                                    "columnMatch": "Unit",
+                                    "formatter": 1
+                                },
+                                "leftContent": {
+                                    "columnMatch": "Value",
+                                    "formatter": 18,
+                                    "numberFormat": {
+                                        "unit": 17,
+                                        "options": {
+                                            "style": "decimal",
+                                            "maximumFractionDigits": 2,
+                                            "maximumSignificantDigits": 4
+                                        }
+                                    }
+                                },
+                                "showBorder": true
+                            }
+                        },
+                        "name": "appInsightsSummaryTiles"
+                    },
+                    {
+                        "type": 3,
+                        "content": {
+                            "version": "KqlItem/1.0",
+                            "query": "Usage\r\n| where TimeGenerated {TimeRange}\r\n| where column_ifexists(\"IsBillable\", true)\r\n| extend ComponentName = extract(@\"([^/]+)$\", 1, _ResourceId)\r\n| summarize BillableGB = round(sum(todouble(Quantity)), 3) by bin(TimeGenerated, 1d), ComponentName\r\n| order by TimeGenerated asc",
+                            "size": 1,
+                            "title": "Daily billable ingestion by component (GB)",
+                            "queryType": 0,
+                            "resourceType": "microsoft.insights/components",
+                            "crossComponentResources": [
+                                "{AppInsightsResources}"
+                            ],
+                            "visualization": "linechart"
+                        },
+                        "name": "appInsightsDailyIngestion"
+                    },
+                    {
+                        "type": 3,
+                        "content": {
+                            "version": "KqlItem/1.0",
+                            "query": "let usageData = Usage\r\n    | where TimeGenerated {TimeRange}\r\n    | where column_ifexists(\"IsBillable\", true)\r\n    | extend ComponentName = extract(@\"([^/]+)$\", 1, _ResourceId)\r\n    | summarize IngestedGB = round(sum(todouble(Quantity)), 2), EstimatedCost = round(sum(todouble(Cost)), 2) by ComponentName, DataType;\r\nlet totalGB = toscalar(usageData | summarize sum(IngestedGB));\r\nlet totalCost = toscalar(usageData | summarize sum(EstimatedCost));\r\nusageData\r\n| extend PercentOfGB = round(iif(totalGB == 0, 0, IngestedGB * 100.0 / totalGB), 2)\r\n| extend PercentOfCost = round(iif(totalCost == 0, 0, EstimatedCost * 100.0 / totalCost), 2)\r\n| extend CostPerGB = round(iif(IngestedGB == 0, 0, EstimatedCost / IngestedGB), 2)\r\n| sort by EstimatedCost desc\r\n| project ComponentName, DataType, IngestedGB, PercentOfGB, EstimatedCost, PercentOfCost, CostPerGB\r\n| take 25",
+                            "size": 2,
+                            "title": "Top telemetry types driving cost",
+                            "queryType": 0,
+                            "resourceType": "microsoft.insights/components",
+                            "crossComponentResources": [
+                                "{AppInsightsResources}"
+                            ],
+                            "visualization": "table",
+                            "gridSettings": {
+                                "filter": true,
+                                "sortBy": [
+                                    {
+                                        "direction": "desc",
+                                        "column": "EstimatedCost"
+                                    }
+                                ]
+                            }
+                        },
+                        "name": "appInsightsTopDataTypes"
+                    },
+                    {
+                        "type": 3,
+                        "content": {
+                            "version": "KqlItem/1.0",
+                            "query": "let telemetry = union isfuzzy=true\r\n    (requests | project TimeGenerated, DataType = \"requests\", CloudRoleName = coalesce(cloud_RoleName, \"(unassigned)\"), ItemCount = tolong(column_ifexists(\"itemCount\", 1))),\r\n    (dependencies | project TimeGenerated, DataType = \"dependencies\", CloudRoleName = coalesce(cloud_RoleName, \"(unassigned)\"), ItemCount = tolong(column_ifexists(\"itemCount\", 1))),\r\n    (traces | project TimeGenerated, DataType = \"traces\", CloudRoleName = coalesce(cloud_RoleName, \"(unassigned)\"), ItemCount = tolong(column_ifexists(\"itemCount\", 1))),\r\n    (exceptions | project TimeGenerated, DataType = \"exceptions\", CloudRoleName = coalesce(cloud_RoleName, \"(unassigned)\"), ItemCount = tolong(column_ifexists(\"itemCount\", 1))),\r\n    (customEvents | project TimeGenerated, DataType = \"customEvents\", CloudRoleName = coalesce(cloud_RoleName, \"(unassigned)\"), ItemCount = tolong(column_ifexists(\"itemCount\", 1))),\r\n    (pageViews | project TimeGenerated, DataType = \"pageViews\", CloudRoleName = coalesce(cloud_RoleName, \"(unassigned)\"), ItemCount = tolong(column_ifexists(\"itemCount\", 1)));\r\ntelemetry\r\n| extend ComponentName = extract(@\"([^/]+)$\", 1, _ResourceId)\r\n| where TimeGenerated {TimeRange}\r\n| extend EffectiveCount = iif(isnull(ItemCount) or ItemCount < 1, 1, ItemCount)\r\n| summarize EstimatedEvents = sum(EffectiveCount), Samples = count() by ComponentName, CloudRoleName, DataType\r\n| extend AveragePerSample = round(iif(Samples == 0, 0, EstimatedEvents * 1.0 / Samples), 2)\r\n| sort by EstimatedEvents desc\r\n| project ComponentName, CloudRoleName, DataType, EstimatedEvents, Samples, AveragePerSample\r\n| take 25",
+                            "size": 2,
+                            "title": "Highest volume telemetry sources (estimated events)",
+                            "queryType": 0,
+                            "resourceType": "microsoft.insights/components",
+                            "crossComponentResources": [
+                                "{AppInsightsResources}"
+                            ],
+                            "visualization": "table",
+                            "gridSettings": {
+                                "filter": true,
+                                "sortBy": [
+                                    {
+                                        "direction": "desc",
+                                        "column": "EstimatedEvents"
+                                    }
+                                ]
+                            }
+                        },
+                        "name": "appInsightsTelemetryVolume"
+                    }
+                ]
+            },
+            "name": "appInsightsGroup",
+            "styleSettings": {
+                "padding": "20px",
+                "showBorder": true
+            }
+        }
+    ],
+    "fallbackResourceIds": [
+        "azure monitor"
+    ],
+    "$schema": "https://github.com/Microsoft/Application-Insights-Workbooks/blob/master/schema/workbook.json"
+}
