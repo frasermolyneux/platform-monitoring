@@ -1,0 +1,10 @@
+resource "azurerm_log_analytics_workspace" "law" {
+  name                = "log-platform-monitoring-${var.environment}-${var.locations[0]}"
+  location            = azurerm_resource_group.rg[var.locations[0]].location
+  resource_group_name = azurerm_resource_group.rg[var.locations[0]].name
+
+  sku               = "PerGB2018"
+  retention_in_days = var.environment == "dev" ? 7 : 30
+
+  tags = var.tags
+}
