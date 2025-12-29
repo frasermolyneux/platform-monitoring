@@ -50,18 +50,6 @@ subscriptions = {
   }
 }
 
-azure_monitor_readers = [
-  "spn-geo-location-production",
-  "spn-portal-bots-production",
-  "spn-portal-core-production",
-  "spn-portal-event-ingest-production",
-  "spn-portal-repository-production",
-  "spn-portal-repository-func-production",
-  "spn-portal-sync-production",
-  "spn-xtremeidiots-portal-production",
-  "spn-molyneux-me-production"
-]
-
 geolocation_app_insights = {
   subscription_id     = "d3b204ab-7c2b-47f7-8d5a-de19e85591e7"
   resource_group_name = "rg-geolocation-prd-uksouth-01"

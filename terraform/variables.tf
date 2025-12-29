@@ -16,11 +16,6 @@ variable "subscriptions" {
   }))
 }
 
-variable "azure_monitor_readers" {
-  type    = list(string)
-  default = []
-}
-
 variable "geolocation_app_insights" {
   type = object({
     subscription_id     = string
