@@ -18,3 +18,33 @@ output "log_analytics" {
     workspace_id        = azurerm_log_analytics_workspace.law.workspace_id
   }
 }
+
+output "monitor_action_groups" {
+  value = {
+    critical = {
+      id                  = azurerm_monitor_action_group.critical.id
+      name                = azurerm_monitor_action_group.critical.name
+      resource_group_name = azurerm_monitor_action_group.critical.resource_group_name
+    }
+    high = {
+      id                  = azurerm_monitor_action_group.high.id
+      name                = azurerm_monitor_action_group.high.name
+      resource_group_name = azurerm_monitor_action_group.high.resource_group_name
+    }
+    moderate = {
+      id                  = azurerm_monitor_action_group.moderate.id
+      name                = azurerm_monitor_action_group.moderate.name
+      resource_group_name = azurerm_monitor_action_group.moderate.resource_group_name
+    }
+    low = {
+      id                  = azurerm_monitor_action_group.low.id
+      name                = azurerm_monitor_action_group.low.name
+      resource_group_name = azurerm_monitor_action_group.low.resource_group_name
+    }
+    informational = {
+      id                  = azurerm_monitor_action_group.informational.id
+      name                = azurerm_monitor_action_group.informational.name
+      resource_group_name = azurerm_monitor_action_group.informational.resource_group_name
+    }
+  }
+}
