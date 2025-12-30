@@ -6,10 +6,4 @@ locals {
     3 = azurerm_monitor_action_group.low
     4 = azurerm_monitor_action_group.informational
   }
-
-  app_insights_map = {
-    "default"     = azurerm_application_insights.ai[var.locations[0]]
-    "portal"      = data.azurerm_application_insights.portal
-    "geolocation" = data.azurerm_application_insights.geolocation
-  }
 }
