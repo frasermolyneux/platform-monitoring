@@ -14,8 +14,8 @@ resource "azurerm_application_insights_workbook" "workbook" {
 
   name = random_uuid.workbook[each.key].result
 
-  resource_group_name = azurerm_resource_group.rg[var.locations[0]].name
-  location            = azurerm_resource_group.rg[var.locations[0]].location
+  resource_group_name = local.platform_monitoring_resource_groups[var.locations[0]]
+  location            = var.locations[0]
 
   display_name = "platform-monitoring-${each.key}-${var.environment}"
 

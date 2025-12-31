@@ -1,8 +1,6 @@
-resource "azurerm_resource_group" "rg" {
-  for_each = toset(var.locations)
-
-  name     = "rg-platform-monitoring-${var.environment}-${each.value}"
-  location = each.value
-
-  tags = var.tags
+locals {
+  platform_monitoring_resource_groups = {
+    for location in var.locations :
+    location => data.terraform_remote_state.platform_workloads.outputs.workload_resource_groups[var.workload_name][var.environment].resource_groups[lower(location)].name
+  }
 }

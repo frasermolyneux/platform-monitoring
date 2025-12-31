@@ -1,7 +1,7 @@
 resource "azurerm_key_vault" "kv" {
   name                = "kv-${random_id.environment_id.hex}-${var.locations[0]}"
-  location            = azurerm_resource_group.rg[var.locations[0]].location
-  resource_group_name = azurerm_resource_group.rg[var.locations[0]].name
+  location            = var.locations[0]
+  resource_group_name = local.platform_monitoring_resource_groups[var.locations[0]]
   tenant_id           = data.azurerm_client_config.current.tenant_id
 
   tags = var.tags
