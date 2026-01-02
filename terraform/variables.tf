@@ -8,9 +8,8 @@ variable "workload_name" {
   default     = "platform-monitoring"
 }
 
-variable "locations" {
-  type    = list(string)
-  default = ["uksouth"]
+variable "location" {
+  default = "uksouth"
 }
 
 variable "subscription_id" {}

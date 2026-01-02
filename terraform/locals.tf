@@ -1,9 +1,18 @@
 locals {
-  action_group_map = {
-    0 = azurerm_monitor_action_group.critical
-    1 = azurerm_monitor_action_group.high
-    2 = azurerm_monitor_action_group.moderate
-    3 = azurerm_monitor_action_group.low
-    4 = azurerm_monitor_action_group.informational
+  workload_resource_groups = {
+    for location in [var.location] :
+    location => data.terraform_remote_state.platform_workloads.outputs.workload_resource_groups[var.workload_name][var.environment].resource_groups[lower(location)].name
   }
+
+  workload_backend = try(
+    data.terraform_remote_state.platform_workloads.outputs.workload_terraform_backends[var.workload_name][var.environment],
+    null
+  )
+
+  workload_administrative_unit = try(
+    data.terraform_remote_state.platform_workloads.outputs.workload_administrative_units[var.workload_name][var.environment],
+    null
+  )
+
+  workload_resource_group = local.workload_resource_groups[var.location]
 }
