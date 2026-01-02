@@ -4,7 +4,7 @@ description: "Guide Copilot to align workspace projects that consume platform-mo
 argument-hint: "Provide workspace root and target projects."
 agent: "copilot-chat"
 model: "gpt-5.1-codex-max"
-tools: []
+tools: ["file_search", "read_file", "apply_patch", "run_in_terminal"]
 ---
 Intent: Ensure all workspace projects that consume platform-monitoring use the documented remote state, permissions, and alert/log wiring patterns.
 
