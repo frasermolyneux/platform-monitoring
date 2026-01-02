@@ -12,6 +12,7 @@
 ## Documentation
 
 * [manual-steps](/docs/manual-steps.md)
+* [consuming-platform-monitoring](/docs/consuming-platform-monitoring.md)
 
 ---
 
