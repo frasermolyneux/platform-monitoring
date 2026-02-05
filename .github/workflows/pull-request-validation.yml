@@ -7,6 +7,8 @@ on:
       - main
 
 
+permissions: read-all
+
 jobs:
   terraform-plan-and-apply-dev:
     permissions:
