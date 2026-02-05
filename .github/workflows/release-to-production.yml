@@ -8,15 +8,15 @@ on:
   schedule:
     - cron: "0 3 * * 4" # Every Thursday at 3am
       
-permissions:
-  id-token: write # This is required for Az CLI Login
-  contents: read # This is required for actions/checkout
 
 concurrency: # This is required to prevent multiple runs of the same workflow from running at the same time.
   group: ${{ github.workflow }}
 
 jobs:
   terraform-plan-and-apply-dev:
+    permissions:
+      id-token: write # This is required for Az CLI Login
+      contents: read # This is required for actions/checkout
     environment: Development
     runs-on: ubuntu-latest
 
@@ -51,6 +51,9 @@ jobs:
       subscriptions: ${{ steps.terraform-output.outputs.subscriptions }}
 
   terraform-subscriptions-plan-and-apply-dev:
+    permissions:
+      id-token: write # This is required for Az CLI Login
+      contents: read # This is required for actions/checkout
     environment: Development
     runs-on: ubuntu-latest
     needs: [terraform-plan-and-apply-dev]
@@ -74,6 +77,9 @@ jobs:
         AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
 
   terraform-plan-and-apply-prd:
+    permissions:
+      id-token: write # This is required for Az CLI Login
+      contents: read # This is required for actions/checkout
     environment: Production
     runs-on: ubuntu-latest
     needs: [terraform-subscriptions-plan-and-apply-dev]
@@ -109,6 +115,9 @@ jobs:
       subscriptions: ${{ steps.terraform-output.outputs.subscriptions }}
 
   terraform-subscriptions-plan-and-apply-prd:
+    permissions:
+      id-token: write # This is required for Az CLI Login
+      contents: read # This is required for actions/checkout
     environment: Production
     runs-on: ubuntu-latest
     needs: [terraform-plan-and-apply-prd]
