@@ -7,7 +7,7 @@ on:
       - main
 
 
-permissions: read-all
+permissions: {}
 
 jobs:
   terraform-plan-and-apply-dev:
