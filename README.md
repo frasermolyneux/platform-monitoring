@@ -1,11 +1,9 @@
 # Platform Monitoring
 
-| Stage                   | Status                                                                                                                                                                                                                                           |
-| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| DevOps Secure Scanning  | [![DevOps Secure Scanning](https://github.com/frasermolyneux/platform-monitoring/actions/workflows/devops-secure-scanning.yml/badge.svg)](https://github.com/frasermolyneux/platform-monitoring/actions/workflows/devops-secure-scanning.yml)    |
-| Feature Development     | [![Feature Development](https://github.com/frasermolyneux/platform-monitoring/actions/workflows/feature-development.yml/badge.svg)](https://github.com/frasermolyneux/platform-monitoring/actions/workflows/feature-development.yml)             |
-| Pull Request Validation | [![Pull Request Validation](https://github.com/frasermolyneux/platform-monitoring/actions/workflows/pull-request-validation.yml/badge.svg)](https://github.com/frasermolyneux/platform-monitoring/actions/workflows/pull-request-validation.yml) |
-| Release to Production   | [![Release to Production](https://github.com/frasermolyneux/platform-monitoring/actions/workflows/release-to-production.yml/badge.svg)](https://github.com/frasermolyneux/platform-monitoring/actions/workflows/release-to-production.yml)       |
+[![DevOps Secure Scanning](https://github.com/frasermolyneux/platform-monitoring/actions/workflows/devops-secure-scanning.yml/badge.svg)](https://github.com/frasermolyneux/platform-monitoring/actions/workflows/devops-secure-scanning.yml)
+[![Feature Development](https://github.com/frasermolyneux/platform-monitoring/actions/workflows/feature-development.yml/badge.svg)](https://github.com/frasermolyneux/platform-monitoring/actions/workflows/feature-development.yml)
+[![Pull Request Validation](https://github.com/frasermolyneux/platform-monitoring/actions/workflows/pull-request-validation.yml/badge.svg)](https://github.com/frasermolyneux/platform-monitoring/actions/workflows/pull-request-validation.yml)
+[![Release to Production](https://github.com/frasermolyneux/platform-monitoring/actions/workflows/release-to-production.yml/badge.svg)](https://github.com/frasermolyneux/platform-monitoring/actions/workflows/release-to-production.yml)
 
 ---
 
