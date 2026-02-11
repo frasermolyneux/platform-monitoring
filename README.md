@@ -1,52 +1,21 @@
 # Platform Monitoring
-
-[![Feature Development](https://github.com/frasermolyneux/platform-monitoring/actions/workflows/feature-development.yml/badge.svg)](https://github.com/frasermolyneux/platform-monitoring/actions/workflows/feature-development.yml)
+[![Code Quality](https://github.com/frasermolyneux/platform-monitoring/actions/workflows/codequality.yml/badge.svg)](https://github.com/frasermolyneux/platform-monitoring/actions/workflows/codequality.yml)
 [![Pull Request Validation](https://github.com/frasermolyneux/platform-monitoring/actions/workflows/pull-request-validation.yml/badge.svg)](https://github.com/frasermolyneux/platform-monitoring/actions/workflows/pull-request-validation.yml)
+[![Feature Development](https://github.com/frasermolyneux/platform-monitoring/actions/workflows/feature-development.yml/badge.svg)](https://github.com/frasermolyneux/platform-monitoring/actions/workflows/feature-development.yml)
 [![Release to Production](https://github.com/frasermolyneux/platform-monitoring/actions/workflows/release-to-production.yml/badge.svg)](https://github.com/frasermolyneux/platform-monitoring/actions/workflows/release-to-production.yml)
-
----
+[![Destroy Environment](https://github.com/frasermolyneux/platform-monitoring/actions/workflows/destroy-environment.yml/badge.svg)](https://github.com/frasermolyneux/platform-monitoring/actions/workflows/destroy-environment.yml)
+[![Dependabot Automerge](https://github.com/frasermolyneux/platform-monitoring/actions/workflows/dependabot-automerge.yml/badge.svg)](https://github.com/frasermolyneux/platform-monitoring/actions/workflows/dependabot-automerge.yml)
+[![Copilot Setup Steps](https://github.com/frasermolyneux/platform-monitoring/actions/workflows/copilot-setup-steps.yml/badge.svg)](https://github.com/frasermolyneux/platform-monitoring/actions/workflows/copilot-setup-steps.yml)
 
 ## Documentation
-
-* [manual-steps](/docs/manual-steps.md)
-* [consuming-platform-monitoring](/docs/consuming-platform-monitoring.md)
-
----
+- [Manual Steps](/docs/manual-steps.md) - Secrets to seed alert contact details
+- [Consuming Platform Monitoring](/docs/consuming-platform-monitoring.md) - How downstream workloads read shared monitoring outputs
 
 ## Overview
-
-This repository contains the resource configuration and associated Azure DevOps pipelines for monitoring related resources; this is primarily focused on workloads that are *not* on the Azure platform.
-
----
-
-## Related Projects
-
-* [frasermolyneux/azure-landing-zones](https://github.com/frasermolyneux/azure-landing-zones) - The deploy service principal is managed by this project, as is the workload subscription.
-
----
-
-## Solution
-
-The solution will deploy the following resources:
-
-* Application Insights
-* Web Availability Tests
-* Action Groups / Alerting
-
----
-
-## Azure Pipelines
-
-The `one-pipeline` is within the `.azure-pipelines` folder and output is visible on the [frasermolyneux/Personal-Public](https://dev.azure.com/frasermolyneux/Personal-Public/_build?definitionId=174) Azure DevOps project.
-
----
+Terraform builds a shared Azure Monitor stack for the platform: a central Log Analytics workspace, severity-based action groups, and a Key Vault seeded with placeholder alert contacts. Resource groups and backend settings are sourced from the platform-workloads remote state so environments stay consistent, and state backends live under terraform/backends for dev and prd. Outputs expose workspace and action group identifiers for downstream workloads to attach diagnostics and alert rules without duplicating infrastructure.
 
 ## Contributing
-
 Please read the [contributing](CONTRIBUTING.md) guidance; this is a learning and development project.
 
----
-
 ## Security
-
 Please read the [security](SECURITY.md) guidance; I am always open to security feedback through email or opening an issue.
