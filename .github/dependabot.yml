@@ -1,17 +1,14 @@
-# Please see the documentation for all configuration options:
-# https://docs.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
-
 version: 2
 updates:
-  - package-ecosystem: "nuget"
+  - package-ecosystem: "terraform"
     assignees: ["frasermolyneux"]
-    directory: "/src"
+    directory: "/terraform"
     schedule:
       interval: "daily"
 
   - package-ecosystem: "terraform"
     assignees: ["frasermolyneux"]
-    directories: ["/terraform", "/terraform-sub"]
+    directory: "/terraform-sub"
     schedule:
       interval: "daily"
 
