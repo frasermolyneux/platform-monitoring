@@ -30,7 +30,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v5
+      - name: Checkout additional repo
+        uses: actions/checkout@v6
         with:
-            dotnet-version: "9.0.x"
+          repository: frasermolyneux/.github-copilot
