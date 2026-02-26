@@ -34,6 +34,12 @@ resource "azurerm_management_group_policy_assignment" "deploy_az_activity_log" {
   })
 }
 
+import {
+  for_each = var.environment == "prd" ? toset(["prd"]) : toset([])
+  to       = azurerm_role_assignment.activity_log_policy_owner[0]
+  id       = "/providers/Microsoft.Management/managementGroups/alz/providers/Microsoft.Authorization/roleAssignments/0983ac74-2c4a-56df-9f5b-e22385ccedaf"
+}
+
 resource "azurerm_role_assignment" "activity_log_policy_owner" {
   count                = var.environment == "prd" ? 1 : 0
   scope                = data.azurerm_management_group.alz[0].id
