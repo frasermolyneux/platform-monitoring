@@ -4,8 +4,9 @@ data "azurerm_management_group" "alz" {
 }
 
 import {
-  to = azurerm_management_group_policy_assignment.deploy_az_activity_log[0]
-  id = "/providers/Microsoft.Management/managementGroups/alz/providers/Microsoft.Authorization/policyAssignments/Deploy-AzActivity-Log"
+  for_each = var.environment == "prd" ? toset(["prd"]) : toset([])
+  to       = azurerm_management_group_policy_assignment.deploy_az_activity_log[0]
+  id       = "/providers/Microsoft.Management/managementGroups/alz/providers/Microsoft.Authorization/policyAssignments/Deploy-AzActivity-Log"
 }
 
 resource "azurerm_management_group_policy_assignment" "deploy_az_activity_log" {
