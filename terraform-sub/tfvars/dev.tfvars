@@ -1,7 +1,7 @@
 environment = "dev"
 location    = "uksouth"
 
-action_group_subscription_id = "d68448b0-9947-46d7-8771-baa331a3063a"
+action_group_subscription_id = "6cad03c1-9e98-4160-8ebe-64dd30f1bbc7"
 
 tags = {
   Environment = "dev",
