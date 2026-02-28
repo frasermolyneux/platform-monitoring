@@ -4,21 +4,6 @@ location      = "uksouth"
 
 subscription_id = "6cad03c1-9e98-4160-8ebe-64dd30f1bbc7"
 
-subscriptions = {
-  sub-enterprise-devtest-legacy = {
-    name            = "sub-enterprise-devtest-legacy"
-    subscription_id = "1b5b28ed-1365-4a48-b285-80f80a6aaa1b"
-  },
-  sub-visualstudio-enterprise = {
-    name            = "sub-visualstudio-enterprise"
-    subscription_id = "6cad03c1-9e98-4160-8ebe-64dd30f1bbc7"
-  },
-  sub-molyneux-me-dev = {
-    name            = "sub-molyneux-me-dev"
-    subscription_id = "ef3cc6c2-159e-4890-9193-13673dded835"
-  }
-}
-
 tags = {
   Environment = "dev",
   Workload    = "platform-monitoring",

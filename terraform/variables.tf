@@ -14,13 +14,6 @@ variable "location" {
 
 variable "subscription_id" {}
 
-variable "subscriptions" {
-  type = map(object({
-    name            = string
-    subscription_id = string
-  }))
-}
-
 variable "platform_workloads_state" {
   description = "Backend config for platform-workloads remote state (used to read workload resource groups/backends)"
   type = object({

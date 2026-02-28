@@ -1,8 +1,10 @@
 locals {
-  subscriptions = [for sub in var.subscriptions : {
+  all_subscriptions = data.terraform_remote_state.platform_workloads.outputs.subscriptions
+
+  subscriptions = [for name, sub in local.all_subscriptions : {
     name            = sub.name
     subscription_id = sub.subscription_id
-  }]
+  } if sub.environment == var.environment]
 }
 
 output "subscriptions" {
