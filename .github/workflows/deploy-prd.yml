@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - 'terraform/**'
+      - 'terraform-sub/**'
       - '.github/workflows/deploy-prd.yml'
   workflow_dispatch:
   schedule:
