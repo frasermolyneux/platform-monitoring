@@ -13,7 +13,6 @@ terraform {
 
 provider "azurerm" {
   subscription_id                 = var.subscription_id
-  resource_provider_registrations = "none"
 
   features {
     resource_group {
@@ -28,7 +27,6 @@ provider "azurerm" {
 provider "azurerm" {
   alias                           = "geolocation"
   subscription_id                 = var.geolocation_app_insights.subscription_id
-  resource_provider_registrations = "none"
   features {}
   storage_use_azuread = true
 }
@@ -36,7 +34,6 @@ provider "azurerm" {
 provider "azurerm" {
   alias                           = "portal"
   subscription_id                 = var.portal_app_insights.subscription_id
-  resource_provider_registrations = "none"
   features {}
   storage_use_azuread = true
 }

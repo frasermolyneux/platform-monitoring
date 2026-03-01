@@ -13,7 +13,6 @@ terraform {
 
 provider "azurerm" {
   subscription_id                 = var.subscription_id
-  resource_provider_registrations = "none"
 
   features {
     resource_group {
@@ -28,7 +27,6 @@ provider "azurerm" {
 provider "azurerm" {
   alias                           = "action_group"
   subscription_id                 = var.action_group_subscription_id
-  resource_provider_registrations = "none"
   features {}
   storage_use_azuread = true
 }
