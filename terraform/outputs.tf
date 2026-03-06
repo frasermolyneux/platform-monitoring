@@ -4,6 +4,7 @@ locals {
   subscriptions = [for name, sub in local.all_subscriptions : {
     name            = sub.name
     subscription_id = sub.subscription_id
+    monthly_budget  = try(sub.monthly_budget, 0)
   } if sub.environment == var.environment]
 }
 
