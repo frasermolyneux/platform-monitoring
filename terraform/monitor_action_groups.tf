@@ -30,6 +30,8 @@ resource "azurerm_monitor_action_group" "critical" {
       email_address = azurerm_key_vault_secret.alert_email.value
     }
   }
+
+  tags = var.tags
 }
 
 resource "azurerm_monitor_action_group" "high" {
@@ -54,6 +56,8 @@ resource "azurerm_monitor_action_group" "high" {
       email_address = azurerm_key_vault_secret.alert_email.value
     }
   }
+
+  tags = var.tags
 }
 
 resource "azurerm_monitor_action_group" "moderate" {
@@ -69,16 +73,22 @@ resource "azurerm_monitor_action_group" "moderate" {
       email_address = azurerm_key_vault_secret.alert_email.value
     }
   }
+
+  tags = var.tags
 }
 
 resource "azurerm_monitor_action_group" "low" {
   name                = "p3-low-alerts-${var.environment}"
   resource_group_name = data.azurerm_resource_group.rg.name
   short_name          = "p3action${var.environment}"
+
+  tags = var.tags
 }
 
 resource "azurerm_monitor_action_group" "informational" {
   name                = "p4-informational-alerts-${var.environment}"
   resource_group_name = data.azurerm_resource_group.rg.name
   short_name          = "p4action${var.environment}"
+
+  tags = var.tags
 }
