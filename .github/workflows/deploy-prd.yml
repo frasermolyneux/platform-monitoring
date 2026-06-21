@@ -64,7 +64,7 @@ jobs:
       matrix:
         subscription: ${{ fromJSON(needs.terraform-plan-and-apply-dev.outputs.subscriptions) }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
 
       - uses: frasermolyneux/actions/terraform-plan-and-apply@terraform-plan-and-apply/v1.4
         with:
@@ -125,7 +125,7 @@ jobs:
       matrix:
         subscription: ${{ fromJSON(needs.terraform-plan-and-apply-prd.outputs.subscriptions) }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
 
       - uses: frasermolyneux/actions/terraform-plan-and-apply@terraform-plan-and-apply/v1.4
         with:
