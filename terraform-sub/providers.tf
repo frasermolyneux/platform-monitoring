@@ -1,10 +1,10 @@
 terraform {
-  required_version = ">= 1.14.3"
+  required_version = ">= 1.15.6"
 
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "~> 4.76.0"
+      version = "~> 4.78.0"
     }
   }
 
@@ -12,7 +12,7 @@ terraform {
 }
 
 provider "azurerm" {
-  subscription_id                 = var.subscription_id
+  subscription_id = var.subscription_id
 
   features {
     resource_group {
@@ -25,8 +25,8 @@ provider "azurerm" {
 }
 
 provider "azurerm" {
-  alias                           = "action_group"
-  subscription_id                 = var.action_group_subscription_id
+  alias           = "action_group"
+  subscription_id = var.action_group_subscription_id
   features {}
   storage_use_azuread = true
 }
