@@ -33,13 +33,13 @@ output "log_analytics_workspaces" {
       workspace_id        = azurerm_log_analytics_workspace.law.workspace_id
       subscription_id     = var.subscription_id
     }
-    cost_optimized = var.cost_optimized_log_analytics.enabled ? {
-      name                = azurerm_log_analytics_workspace.cost_optimized[0].name
-      id                  = azurerm_log_analytics_workspace.cost_optimized[0].id
-      resource_group_name = azurerm_log_analytics_workspace.cost_optimized[0].resource_group_name
-      location            = azurerm_log_analytics_workspace.cost_optimized[0].location
-      workspace_id        = azurerm_log_analytics_workspace.cost_optimized[0].workspace_id
-      subscription_id     = var.cost_optimized_log_analytics.subscription_id
+    noncritical = var.noncritical_log_analytics.enabled ? {
+      name                = azurerm_log_analytics_workspace.noncritical[0].name
+      id                  = azurerm_log_analytics_workspace.noncritical[0].id
+      resource_group_name = azurerm_log_analytics_workspace.noncritical[0].resource_group_name
+      location            = azurerm_log_analytics_workspace.noncritical[0].location
+      workspace_id        = azurerm_log_analytics_workspace.noncritical[0].workspace_id
+      subscription_id     = var.noncritical_log_analytics.subscription_id
     } : null
   }
 }

@@ -15,7 +15,7 @@
 
 ## Overview
 
-This repository contains Terraform configurations that build a shared Azure Monitor stack for the platform, including central Log Analytics workspaces, severity-based action groups (P0–P4), and a Key Vault seeded with placeholder alert contacts. Production can place an additional cost-optimized workspace in a separate subscription while retaining central ownership and shared outputs. Resource groups and backend settings are sourced from the platform-workloads remote state so environments stay consistent across dev and prd. A secondary Terraform root under `terraform-sub/` wires subscription-level Resource Health and Service Health alerts to the shared action groups. Outputs expose workspace and action group identifiers for downstream workloads to attach diagnostics and alert rules without duplicating infrastructure.
+This repository contains Terraform configurations that build a shared Azure Monitor stack for the platform, including central Log Analytics workspaces, severity-based action groups (P0–P4), and a Key Vault seeded with placeholder alert contacts. Production can place an additional noncritical telemetry workspace in a separate subscription while retaining central ownership and shared outputs. Resource groups and backend settings are sourced from the platform-workloads remote state so environments stay consistent across dev and prd. A secondary Terraform root under `terraform-sub/` wires subscription-level Resource Health and Service Health alerts to the shared action groups. Outputs expose workspace and action group identifiers for downstream workloads to attach diagnostics and alert rules without duplicating infrastructure.
 
 ## Contributing
 

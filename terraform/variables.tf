@@ -14,8 +14,8 @@ variable "location" {
 
 variable "subscription_id" {}
 
-variable "cost_optimized_log_analytics" {
-  description = "Additional central Log Analytics workspace configuration for a subscription with cost credits"
+variable "noncritical_log_analytics" {
+  description = "Additional central Log Analytics workspace for telemetry that can tolerate filtering, sampling, or loss"
   type = object({
     enabled             = bool
     subscription_id     = string
