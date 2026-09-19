@@ -72,6 +72,21 @@ resource "azurerm_monitor_data_collection_rule" "linux_noncritical" {
       ]
       streams = ["Microsoft-Syslog"]
     }
+
+    syslog {
+      name           = "platform-operations"
+      facility_names = ["local0"]
+      log_levels = [
+        "Info",
+        "Notice",
+        "Warning",
+        "Error",
+        "Critical",
+        "Alert",
+        "Emergency",
+      ]
+      streams = ["Microsoft-Syslog"]
+    }
   }
 
   tags = merge(var.tags, {
