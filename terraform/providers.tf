@@ -37,3 +37,12 @@ provider "azurerm" {
   features {}
   storage_use_azuread = true
 }
+
+provider "azurerm" {
+  alias           = "cost_optimized"
+  subscription_id = var.cost_optimized_log_analytics.subscription_id
+
+  features {}
+
+  storage_use_azuread = true
+}

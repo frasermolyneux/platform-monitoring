@@ -4,6 +4,13 @@ location      = "uksouth"
 
 subscription_id = "6cad03c1-9e98-4160-8ebe-64dd30f1bbc7"
 
+cost_optimized_log_analytics = {
+  enabled             = false
+  subscription_id     = "6cad03c1-9e98-4160-8ebe-64dd30f1bbc7"
+  resource_group_name = "rg-platform-monitoring-dev-cost-uksouth"
+  workspace_name      = "log-platform-monitoring-dev-cost-uksouth"
+}
+
 tags = {
   Environment = "dev",
   Workload    = "platform-monitoring",

@@ -4,7 +4,8 @@ The platform-monitoring resources are designed to be long-lived and shared acros
 
 ## What this project provides
 
-- A central Log Analytics workspace (name, id, resource group, location, workspace id exposed via `log_analytics` output)
+- Central Log Analytics workspaces exposed through `log_analytics_workspaces`, including a stable `primary` workspace and optional placement profiles such as `cost_optimized`
+- The original primary workspace output remains available as `log_analytics` for compatibility
 - Severity-based Azure Monitor action groups (critical, high, moderate, low, informational) exposed via the `monitor_action_groups` output
 - Subscription metadata surfaced through the `subscriptions` output for convenience
 
@@ -58,8 +59,12 @@ data "terraform_remote_state" "platform_monitoring" {
 }
 
 locals {
-  log_analytics_workspace_id = data.terraform_remote_state.platform_monitoring.outputs.log_analytics.id
-  log_analytics_workspace_rg = data.terraform_remote_state.platform_monitoring.outputs.log_analytics.resource_group_name
+  log_analytics_workspace = coalesce(
+    data.terraform_remote_state.platform_monitoring.outputs.log_analytics_workspaces["cost_optimized"],
+    data.terraform_remote_state.platform_monitoring.outputs.log_analytics_workspaces["primary"]
+  )
+  log_analytics_workspace_id = local.log_analytics_workspace.id
+  log_analytics_workspace_rg = local.log_analytics_workspace.resource_group_name
   critical_action_group_id   = data.terraform_remote_state.platform_monitoring.outputs.monitor_action_groups["critical"].id
 }
 
@@ -98,6 +103,9 @@ Adjust the backend values to the production settings when wiring production work
 
 ## Usage notes
 
-- Prefer consuming the remote state rather than duplicating Log Analytics or action groups; this keeps alert routing consistent across workloads.
+- Prefer consuming the remote state rather than duplicating Log Analytics or action groups; this keeps ownership and alert routing consistent across workloads.
+- Select a workspace by profile from `log_analytics_workspaces`. The `cost_optimized` key is `null` where that profile is disabled, so environment-spanning consumers should fall back to `primary` as shown above.
+- Production bare-metal telemetry is intended to use `cost_optimized`, which is centrally owned by `platform-monitoring` but hosted in the Visual Studio Enterprise subscription to consume its credit allowance.
+- The `cost_optimized` workspace has local shared-key authentication disabled. Consumers must use Azure identities and should collect only the health and operational data needed for actionable alerts.
 - Choose the action group severity that matches your alert rules and pass the `id` to `azurerm_monitor_metric_alert` or `azurerm_monitor_activity_log_alert` configurations.
 - The central Log Analytics workspace can be used as the target for `azurerm_monitor_diagnostic_setting` or query targets in log-based alerts; use the `workspace_id` output when configuring those resources.
