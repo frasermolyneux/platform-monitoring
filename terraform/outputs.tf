@@ -22,6 +22,28 @@ output "log_analytics" {
   }
 }
 
+output "log_analytics_workspaces" {
+  description = "Central Log Analytics workspaces keyed by intended cost and placement profile"
+  value = {
+    primary = {
+      name                = azurerm_log_analytics_workspace.law.name
+      id                  = azurerm_log_analytics_workspace.law.id
+      resource_group_name = azurerm_log_analytics_workspace.law.resource_group_name
+      location            = azurerm_log_analytics_workspace.law.location
+      workspace_id        = azurerm_log_analytics_workspace.law.workspace_id
+      subscription_id     = var.subscription_id
+    }
+    cost_optimized = var.cost_optimized_log_analytics.enabled ? {
+      name                = azurerm_log_analytics_workspace.cost_optimized[0].name
+      id                  = azurerm_log_analytics_workspace.cost_optimized[0].id
+      resource_group_name = azurerm_log_analytics_workspace.cost_optimized[0].resource_group_name
+      location            = azurerm_log_analytics_workspace.cost_optimized[0].location
+      workspace_id        = azurerm_log_analytics_workspace.cost_optimized[0].workspace_id
+      subscription_id     = var.cost_optimized_log_analytics.subscription_id
+    } : null
+  }
+}
+
 output "monitor_action_groups" {
   value = {
     critical = {

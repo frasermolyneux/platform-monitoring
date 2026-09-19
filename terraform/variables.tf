@@ -14,6 +14,16 @@ variable "location" {
 
 variable "subscription_id" {}
 
+variable "cost_optimized_log_analytics" {
+  description = "Additional central Log Analytics workspace configuration for a subscription with cost credits"
+  type = object({
+    enabled             = bool
+    subscription_id     = string
+    resource_group_name = string
+    workspace_name      = string
+  })
+}
+
 variable "platform_workloads_state" {
   description = "Backend config for platform-workloads remote state (used to read workload resource groups/backends)"
   type = object({
