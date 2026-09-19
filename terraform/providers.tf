@@ -39,8 +39,8 @@ provider "azurerm" {
 }
 
 provider "azurerm" {
-  alias           = "cost_optimized"
-  subscription_id = var.cost_optimized_log_analytics.subscription_id
+  alias           = "noncritical"
+  subscription_id = var.noncritical_log_analytics.subscription_id
 
   features {}
 

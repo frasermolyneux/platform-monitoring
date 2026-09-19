@@ -9,29 +9,29 @@ resource "azurerm_log_analytics_workspace" "law" {
   tags = var.tags
 }
 
-resource "azurerm_resource_group" "cost_optimized_monitoring" {
-  count    = var.cost_optimized_log_analytics.enabled ? 1 : 0
-  provider = azurerm.cost_optimized
+resource "azurerm_resource_group" "noncritical_monitoring" {
+  count    = var.noncritical_log_analytics.enabled ? 1 : 0
+  provider = azurerm.noncritical
 
-  name     = var.cost_optimized_log_analytics.resource_group_name
+  name     = var.noncritical_log_analytics.resource_group_name
   location = var.location
 
   tags = merge(var.tags, {
-    CostProfile = "CreditBacked"
+    TelemetryClass = "Noncritical"
   })
 
   lifecycle {
-    prevent_destroy = true
+    create_before_destroy = true
   }
 }
 
-resource "azurerm_log_analytics_workspace" "cost_optimized" {
-  count    = var.cost_optimized_log_analytics.enabled ? 1 : 0
-  provider = azurerm.cost_optimized
+resource "azurerm_log_analytics_workspace" "noncritical" {
+  count    = var.noncritical_log_analytics.enabled ? 1 : 0
+  provider = azurerm.noncritical
 
-  name                = var.cost_optimized_log_analytics.workspace_name
-  location            = azurerm_resource_group.cost_optimized_monitoring[0].location
-  resource_group_name = azurerm_resource_group.cost_optimized_monitoring[0].name
+  name                = var.noncritical_log_analytics.workspace_name
+  location            = azurerm_resource_group.noncritical_monitoring[0].location
+  resource_group_name = azurerm_resource_group.noncritical_monitoring[0].name
 
   sku               = "PerGB2018"
   retention_in_days = 30
@@ -39,10 +39,20 @@ resource "azurerm_log_analytics_workspace" "cost_optimized" {
   local_authentication_enabled = false
 
   tags = merge(var.tags, {
-    CostProfile = "CreditBacked"
+    TelemetryClass = "Noncritical"
   })
 
   lifecycle {
-    prevent_destroy = true
+    create_before_destroy = true
   }
+}
+
+moved {
+  from = azurerm_resource_group.cost_optimized_monitoring
+  to   = azurerm_resource_group.noncritical_monitoring
+}
+
+moved {
+  from = azurerm_log_analytics_workspace.cost_optimized
+  to   = azurerm_log_analytics_workspace.noncritical
 }
