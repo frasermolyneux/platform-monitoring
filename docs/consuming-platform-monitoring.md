@@ -5,6 +5,7 @@ The platform-monitoring resources are designed to be long-lived and shared acros
 ## What this project provides
 
 - Central Log Analytics workspaces exposed through `log_analytics_workspaces`, including a stable `primary` workspace and optional service classes such as `noncritical`
+- Centrally managed data collection rules exposed through `data_collection_rules`, including the production Linux `linux_noncritical` profile
 - The original primary workspace output remains available as `log_analytics` for compatibility
 - Severity-based Azure Monitor action groups (critical, high, moderate, low, informational) exposed via the `monitor_action_groups` output
 - Subscription metadata surfaced through the `subscriptions` output for convenience
@@ -66,6 +67,7 @@ locals {
   log_analytics_workspace_id = local.log_analytics_workspace.id
   log_analytics_workspace_rg = local.log_analytics_workspace.resource_group_name
   critical_action_group_id   = data.terraform_remote_state.platform_monitoring.outputs.monitor_action_groups["critical"].id
+  linux_data_collection_rule = data.terraform_remote_state.platform_monitoring.outputs.data_collection_rules["linux_noncritical"]
 }
 
 resource "azurerm_monitor_metric_alert" "app_health" {
@@ -106,6 +108,7 @@ Adjust the backend values to the production settings when wiring production work
 - Prefer consuming the remote state rather than duplicating Log Analytics or action groups; this keeps ownership and alert routing consistent across workloads.
 - Select a workspace by service class from `log_analytics_workspaces`. The `noncritical` key is `null` where that class is disabled, so environment-spanning consumers should fall back to `primary` as shown above.
 - Production bare-metal telemetry is intended to use `noncritical`, which is centrally owned by `platform-monitoring` but hosted in the Visual Studio Enterprise subscription to consume its credit allowance.
+- Linux hosts should consume `data_collection_rules["linux_noncritical"]` rather than defining their own equivalent collection policy. The rule collects heartbeat through the Azure Monitor Agent, authentication syslog at Info or higher, selected system syslog at Warning or higher, and a small set of 60-second capacity and health counters.
 - The `noncritical` workspace is for telemetry that may be filtered, sampled, or dropped without hiding an immediate service-impacting condition. It has local shared-key authentication disabled, so consumers must use Azure identities.
 - Choose the action group severity that matches your alert rules and pass the `id` to `azurerm_monitor_metric_alert` or `azurerm_monitor_activity_log_alert` configurations.
 - The central Log Analytics workspace can be used as the target for `azurerm_monitor_diagnostic_setting` or query targets in log-based alerts; use the `workspace_id` output when configuring those resources.

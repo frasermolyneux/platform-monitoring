@@ -44,6 +44,19 @@ output "log_analytics_workspaces" {
   }
 }
 
+output "data_collection_rules" {
+  description = "Centrally managed data collection rules keyed by platform and telemetry class"
+  value = {
+    linux_noncritical = var.noncritical_log_analytics.enabled ? {
+      id                  = azurerm_monitor_data_collection_rule.linux_noncritical[0].id
+      immutable_id        = azurerm_monitor_data_collection_rule.linux_noncritical[0].immutable_id
+      name                = azurerm_monitor_data_collection_rule.linux_noncritical[0].name
+      resource_group_name = azurerm_monitor_data_collection_rule.linux_noncritical[0].resource_group_name
+      subscription_id     = var.noncritical_log_analytics.subscription_id
+    } : null
+  }
+}
+
 output "monitor_action_groups" {
   value = {
     critical = {

@@ -5,10 +5,11 @@ location      = "uksouth"
 subscription_id = "7760848c-794d-4a19-8cb2-52f71a21ac2b"
 
 noncritical_log_analytics = {
-  enabled             = true
-  subscription_id     = "6cad03c1-9e98-4160-8ebe-64dd30f1bbc7"
-  resource_group_name = "rg-platform-monitoring-noncritical-prd-uksouth"
-  workspace_name      = "log-platform-monitoring-noncritical-prd-uksouth"
+  enabled                         = true
+  subscription_id                 = "6cad03c1-9e98-4160-8ebe-64dd30f1bbc7"
+  resource_group_name             = "rg-platform-monitoring-noncritical-prd-uksouth"
+  workspace_name                  = "log-platform-monitoring-noncritical-prd-uksouth"
+  linux_data_collection_rule_name = "dcr-platform-monitoring-linux-noncritical-prd-uksouth"
 }
 
 tags = {

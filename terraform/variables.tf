@@ -17,10 +17,11 @@ variable "subscription_id" {}
 variable "noncritical_log_analytics" {
   description = "Additional central Log Analytics workspace for telemetry that can tolerate filtering, sampling, or loss"
   type = object({
-    enabled             = bool
-    subscription_id     = string
-    resource_group_name = string
-    workspace_name      = string
+    enabled                         = bool
+    subscription_id                 = string
+    resource_group_name             = string
+    workspace_name                  = string
+    linux_data_collection_rule_name = string
   })
 }
 
