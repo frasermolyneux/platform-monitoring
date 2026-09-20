@@ -23,25 +23,19 @@ resource "azurerm_monitor_scheduled_query_rules_alert_v2" "backup_failure" {
   criteria {
     query = <<-KQL
       let ExpectedServers = datatable(Server:string) [${local.backup_expected_servers_kql}];
-      let LatestStatuses = Syslog
+      let LatestServerState = Syslog
           | where Facility == "local0"
           | where ProcessName in ("platform-backup", "platform-backup-health")
           | extend Server = extract(@"server=([^ ]+)", 1, SyslogMessage),
                    Workload = extract(@"workload=([^ ]+)", 1, SyslogMessage),
                    BackupKind = extract(@"kind=([^ ]+)", 1, SyslogMessage),
                    Result = extract(@"status=([^ ]+)", 1, SyslogMessage)
-          | summarize arg_max(TimeGenerated, Result) by Server, Workload, BackupKind;
-      let MissingOrStaleHealth = ExpectedServers
-          | join kind=leftouter (
-              LatestStatuses
-              | where BackupKind == "all"
-              | project Server, HealthTime = TimeGenerated, HealthResult = Result
-          ) on Server
-          | where isempty(HealthResult) or HealthResult != "success" or HealthTime < ago(30h)
-          | project Server, Workload = "", BackupKind = "all", Result = iff(isempty(HealthResult), "missing", HealthResult), TimeGenerated = HealthTime;
-      LatestStatuses
-      | where Result == "failed"
-      | union MissingOrStaleHealth
+          | where ProcessName == "platform-backup-health" or Result == "failed"
+          | summarize arg_max(TimeGenerated, Result, ProcessName, Workload, BackupKind, SyslogMessage) by Server;
+      ExpectedServers
+      | join kind=leftouter LatestServerState on Server
+      | where isempty(Result) or Result != "success" or TimeGenerated < ago(30h)
+      | extend Result = iff(isempty(Result), "missing", Result)
     KQL
 
     time_aggregation_method = "Count"
