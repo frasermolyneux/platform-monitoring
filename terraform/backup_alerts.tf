@@ -6,19 +6,25 @@ resource "azurerm_monitor_scheduled_query_rules_alert_v2" "backup_failure" {
   resource_group_name = azurerm_resource_group.noncritical_monitoring[0].name
   location            = azurerm_resource_group.noncritical_monitoring[0].location
 
-  evaluation_frequency = "PT5M"
-  window_duration      = "PT10M"
-  scopes               = [azurerm_log_analytics_workspace.noncritical[0].id]
-  severity             = 1
-  description          = "Alerts when a managed platform backup fails or becomes stale."
-  enabled              = true
+  evaluation_frequency    = "PT5M"
+  window_duration         = "P2D"
+  scopes                  = [azurerm_log_analytics_workspace.noncritical[0].id]
+  severity                = 1
+  description             = "Alerts when a managed platform backup fails or becomes stale."
+  enabled                 = true
+  auto_mitigation_enabled = true
 
   criteria {
     query = <<-KQL
       Syslog
       | where Facility == "local0"
       | where ProcessName in ("platform-backup", "platform-backup-health")
-      | where SyslogMessage has "status=failed"
+      | extend Server = extract(@"server=([^ ]+)", 1, SyslogMessage),
+               Workload = extract(@"workload=([^ ]+)", 1, SyslogMessage),
+               BackupKind = extract(@"kind=([^ ]+)", 1, SyslogMessage),
+               Result = extract(@"status=([^ ]+)", 1, SyslogMessage)
+      | summarize arg_max(TimeGenerated, Result) by Server, Workload, BackupKind
+      | where Result == "failed"
     KQL
 
     time_aggregation_method = "Count"

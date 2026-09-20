@@ -1,8 +1,12 @@
 locals {
   workbook_templates = [for f in fileset("workbooks", "*.json") : {
     workbook_name = replace(f, ".json", "")
-    data_json     = jsondecode(file("workbooks/${f}"))
-  }]
+    data_json = jsondecode(replace(
+      file("workbooks/${f}"),
+      "__FLEET_WORKSPACE_RESOURCE_ID__",
+      var.noncritical_log_analytics.enabled ? azurerm_log_analytics_workspace.noncritical[0].id : azurerm_log_analytics_workspace.law.id
+    ))
+  } if f != "baremetal-fleet-health.json" || var.noncritical_log_analytics.enabled]
 }
 
 resource "random_uuid" "workbook" {

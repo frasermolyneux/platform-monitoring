@@ -17,6 +17,8 @@
 
 This repository contains Terraform configurations that build a shared Azure Monitor stack for the platform, including central Log Analytics workspaces, reusable data collection rules, severity-based action groups (P0–P4), and a Key Vault seeded with placeholder alert contacts. Production can place an additional noncritical telemetry workspace in a separate subscription while retaining central ownership and shared outputs. Resource groups and backend settings are sourced from the platform-workloads remote state so environments stay consistent across dev and prd. A secondary Terraform root under `terraform-sub/` wires subscription-level Resource Health and Service Health alerts to the shared action groups. Outputs expose workspace, data collection rule, and action group identifiers for downstream workloads to attach telemetry and alert rules without duplicating infrastructure.
 
+The Terraform-managed production workbooks include a bare-metal fleet health information radiator. It combines Azure Arc connection state, recent Heartbeat telemetry, backup results, unresolved alerts, and historical Resource Health signals. Alert rows open the Azure Monitor alert details blade so operators can inspect, acknowledge, or close incidents after confirming that current health evidence is green. Viewers require read access to both the platform-management subscription and the subscription containing the noncritical Log Analytics workspace.
+
 ## Contributing
 
 Please read the [contributing](CONTRIBUTING.md) guidance; this is a learning and development project.

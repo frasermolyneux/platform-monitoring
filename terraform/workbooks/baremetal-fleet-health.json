@@ -1,0 +1,567 @@
+{
+  "version": "Notebook/1.0",
+  "items": [
+    {
+      "type": 9,
+      "content": {
+        "version": "KqlParameterItem/1.0",
+        "parameters": [
+          {
+            "id": "1c6f6924-3f61-46cf-8f17-548bd076f852",
+            "version": "KqlParameterItem/1.0",
+            "name": "Subscription",
+            "type": 6,
+            "isRequired": true,
+            "multiSelect": true,
+            "quote": "'",
+            "delimiter": ",",
+            "typeSettings": {
+              "additionalResourceOptions": [
+                "value::all"
+              ],
+              "includeAll": true,
+              "showDefault": false
+            },
+            "defaultValue": "value::all",
+            "value": [
+              "value::all"
+            ]
+          },
+          {
+            "id": "e9bb4457-ce83-4623-96b4-2238bdcb7552",
+            "version": "KqlParameterItem/1.0",
+            "name": "TimeRange",
+            "type": 4,
+            "isRequired": true,
+            "typeSettings": {
+              "allowCustom": true,
+              "selectableValues": [
+                {
+                  "durationMs": 3600000
+                },
+                {
+                  "durationMs": 14400000
+                },
+                {
+                  "durationMs": 43200000
+                },
+                {
+                  "durationMs": 86400000
+                },
+                {
+                  "durationMs": 172800000
+                },
+                {
+                  "durationMs": 604800000
+                },
+                {
+                  "durationMs": 1209600000
+                },
+                {
+                  "durationMs": 2592000000
+                }
+              ]
+            },
+            "timeContext": {
+              "durationMs": 604800000
+            },
+            "value": {
+              "durationMs": 604800000
+            }
+          }
+        ],
+        "style": "pills",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces"
+      },
+      "name": "parameters"
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "# Bare-metal Fleet Health\nA visual operational view built from existing Azure Arc, Heartbeat, backup Syslog, Resource Health and Azure Monitor alert data. Green status tiles represent current evidence; historical alerts remain visible for investigation and audit.",
+        "style": "info"
+      },
+      "name": "workbookIntroduction"
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "## Current server status",
+        "style": "info"
+      },
+      "name": "serverStatusTitle"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "Resources\n| where type =~ 'microsoft.hybridcompute/machines'\n| extend ConnectionStatus = tostring(properties.status), LastStatusChange = todatetime(properties.lastStatusChange), AgentVersion = tostring(properties.agentVersion)\n| extend Health = iff(ConnectionStatus =~ 'Connected', 'Healthy', 'Disconnected')\n| project Server=name, Health, ConnectionStatus, LastStatusChange, AgentVersion, ResourceGroup=resourceGroup",
+        "size": 0,
+        "title": "Azure Arc connection",
+        "queryType": 1,
+        "resourceType": "microsoft.resourcegraph/resources",
+        "crossComponentResources": [
+          "{Subscription}"
+        ],
+        "visualization": "tiles",
+        "tileSettings": {
+          "titleContent": {
+            "columnMatch": "Server",
+            "formatter": 1
+          },
+          "subtitleContent": {
+            "columnMatch": "LastStatusChange",
+            "formatter": 6
+          },
+          "leftContent": {
+            "columnMatch": "Health",
+            "formatter": 18,
+            "formatOptions": {
+              "thresholdsOptions": "icons",
+              "thresholdsGrid": [
+                {
+                  "operator": "==",
+                  "thresholdValue": "Healthy",
+                  "representation": "success",
+                  "text": "{0}{1}"
+                },
+                {
+                  "operator": "Default",
+                  "thresholdValue": null,
+                  "representation": "3",
+                  "text": "{0}{1}"
+                }
+              ]
+            }
+          },
+          "rightContent": {
+            "columnMatch": "AgentVersion",
+            "formatter": 1
+          },
+          "showBorder": true
+        }
+      },
+      "name": "arcConnectionTiles"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "Heartbeat\n| where TimeGenerated > ago(30d)\n| summarize LastHeartbeat=max(TimeGenerated), Heartbeats=count() by Computer, _ResourceId\n| extend AgeMinutes=datetime_diff('minute', now(), LastHeartbeat)\n| extend Health=case(AgeMinutes <= 5, 'Healthy', AgeMinutes <= 15, 'Degraded', 'Offline')\n| project Server=Computer, Health, LastHeartbeat, AgeMinutes, Heartbeats",
+        "size": 0,
+        "title": "Monitor heartbeat",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "crossComponentResources": [
+          "__FLEET_WORKSPACE_RESOURCE_ID__"
+        ],
+        "timeContext": {
+          "durationMs": 2592000000
+        },
+        "visualization": "tiles",
+        "tileSettings": {
+          "titleContent": {
+            "columnMatch": "Server",
+            "formatter": 1
+          },
+          "subtitleContent": {
+            "columnMatch": "LastHeartbeat",
+            "formatter": 6
+          },
+          "leftContent": {
+            "columnMatch": "Health",
+            "formatter": 18,
+            "formatOptions": {
+              "thresholdsOptions": "icons",
+              "thresholdsGrid": [
+                {
+                  "operator": "==",
+                  "thresholdValue": "Healthy",
+                  "representation": "success",
+                  "text": "{0}{1}"
+                },
+                {
+                  "operator": "==",
+                  "thresholdValue": "Degraded",
+                  "representation": "2",
+                  "text": "{0}{1}"
+                },
+                {
+                  "operator": "Default",
+                  "thresholdValue": null,
+                  "representation": "3",
+                  "text": "{0}{1}"
+                }
+              ]
+            }
+          },
+          "rightContent": {
+            "columnMatch": "AgeMinutes",
+            "formatter": 1
+          },
+          "showBorder": true
+        }
+      },
+      "name": "heartbeatTiles"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "Heartbeat\n| where TimeGenerated {TimeRange}\n| summarize Heartbeats=count() by bin(TimeGenerated, 15m), Computer\n| order by TimeGenerated asc",
+        "size": 0,
+        "title": "Heartbeat continuity",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "crossComponentResources": [
+          "__FLEET_WORKSPACE_RESOURCE_ID__"
+        ],
+        "visualization": "linechart"
+      },
+      "name": "heartbeatTimeline"
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "## Backup health",
+        "style": "info"
+      },
+      "name": "backupStatusTitle"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "Syslog\n| where TimeGenerated > ago(30d)\n| where Facility == 'local0'\n| where ProcessName in ('platform-backup', 'platform-backup-health')\n| extend Server=extract(@'server=([^ ]+)', 1, SyslogMessage), Workload=extract(@'workload=([^ ]+)', 1, SyslogMessage), BackupKind=extract(@'kind=([^ ]+)', 1, SyslogMessage), Result=extract(@'status=([^ ]+)', 1, SyslogMessage)\n| summarize arg_max(TimeGenerated, Result, SyslogMessage) by Server, Workload, BackupKind\n| extend AgeHours=datetime_diff('hour', now(), TimeGenerated)\n| extend Health=case(Result != 'success', 'Failed', AgeHours > 30, 'Stale', 'Healthy')\n| extend Backup=case(BackupKind == 'all', 'Overall backup health', isempty(Workload), strcat('All databases / ', BackupKind), strcat(Workload, ' / ', BackupKind))\n| project Backup, Server, Health, LastResult=Result, LastRun=TimeGenerated, AgeHours",
+        "size": 0,
+        "title": "Latest result by backup scope",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "crossComponentResources": [
+          "__FLEET_WORKSPACE_RESOURCE_ID__"
+        ],
+        "timeContext": {
+          "durationMs": 2592000000
+        },
+        "visualization": "tiles",
+        "tileSettings": {
+          "titleContent": {
+            "columnMatch": "Backup",
+            "formatter": 1
+          },
+          "subtitleContent": {
+            "columnMatch": "LastRun",
+            "formatter": 6
+          },
+          "leftContent": {
+            "columnMatch": "Health",
+            "formatter": 18,
+            "formatOptions": {
+              "thresholdsOptions": "icons",
+              "thresholdsGrid": [
+                {
+                  "operator": "==",
+                  "thresholdValue": "Healthy",
+                  "representation": "success",
+                  "text": "{0}{1}"
+                },
+                {
+                  "operator": "==",
+                  "thresholdValue": "Stale",
+                  "representation": "2",
+                  "text": "{0}{1}"
+                },
+                {
+                  "operator": "Default",
+                  "thresholdValue": null,
+                  "representation": "3",
+                  "text": "{0}{1}"
+                }
+              ]
+            }
+          },
+          "rightContent": {
+            "columnMatch": "AgeHours",
+            "formatter": 1
+          },
+          "showBorder": true
+        }
+      },
+      "name": "backupHealthTiles"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "Syslog\n| where TimeGenerated {TimeRange}\n| where Facility == 'local0'\n| where ProcessName in ('platform-backup', 'platform-backup-health')\n| extend BackupKind=extract(@'kind=([^ ]+)', 1, SyslogMessage), Result=extract(@'status=([^ ]+)', 1, SyslogMessage)\n| summarize Successful=countif(Result == 'success'), Failed=countif(Result == 'failed') by bin(TimeGenerated, 1h), BackupKind\n| order by TimeGenerated asc",
+        "size": 0,
+        "title": "Backup outcomes over time",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "crossComponentResources": [
+          "__FLEET_WORKSPACE_RESOURCE_ID__"
+        ],
+        "visualization": "columnchart"
+      },
+      "name": "backupHistoryChart"
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "## Alerts requiring attention",
+        "style": "info"
+      },
+      "name": "activeAlertsTitle"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "AlertsManagementResources\n| where type =~ 'microsoft.alertsmanagement/alerts'\n| extend AlertState=tostring(properties.essentials.alertState), MonitorCondition=tostring(properties.essentials.monitorCondition), Severity=tostring(properties.essentials.severity), Rule=tostring(properties.essentials.alertRule), TargetType=tostring(properties.essentials.targetResourceType)\n| where Rule contains 'platform-backup-' or TargetType =~ 'microsoft.hybridcompute/machines'\n| summarize Unresolved=countif(MonitorCondition == 'Fired' and AlertState in ('New', 'Acknowledged')), New=countif(MonitorCondition == 'Fired' and AlertState == 'New'), Acknowledged=countif(MonitorCondition == 'Fired' and AlertState == 'Acknowledged')\n| extend Tiles=pack_array(pack('Metric', 'Unresolved', 'Value', Unresolved, 'Health', iff(Unresolved == 0, 'Healthy', 'Attention')), pack('Metric', 'New', 'Value', New, 'Health', iff(New == 0, 'Healthy', 'Attention')), pack('Metric', 'Acknowledged', 'Value', Acknowledged, 'Health', iff(Acknowledged == 0, 'Healthy', 'Attention')))\n| mv-expand Tiles\n| project Metric=tostring(Tiles.Metric), Value=toint(Tiles.Value), Health=tostring(Tiles.Health)",
+        "size": 0,
+        "title": "Current alert workload",
+        "queryType": 1,
+        "resourceType": "microsoft.resourcegraph/resources",
+        "crossComponentResources": [
+          "{Subscription}"
+        ],
+        "visualization": "tiles",
+        "tileSettings": {
+          "titleContent": {
+            "columnMatch": "Metric",
+            "formatter": 1
+          },
+          "leftContent": {
+            "columnMatch": "Value",
+            "formatter": 18,
+            "formatOptions": {
+              "thresholdsOptions": "icons",
+              "thresholdsGrid": [
+                {
+                  "operator": "==",
+                  "thresholdValue": "0",
+                  "representation": "success",
+                  "text": "{0}{1}"
+                },
+                {
+                  "operator": "Default",
+                  "thresholdValue": null,
+                  "representation": "3",
+                  "text": "{0}{1}"
+                }
+              ]
+            }
+          },
+          "subtitleContent": {
+            "columnMatch": "Health",
+            "formatter": 1
+          },
+          "showBorder": true
+        }
+      },
+      "name": "activeAlertTiles"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "AlertsManagementResources\n| where type =~ 'microsoft.alertsmanagement/alerts'\n| extend FireTime=todatetime(properties.essentials.startDateTime), AlertState=tostring(properties.essentials.alertState), MonitorCondition=tostring(properties.essentials.monitorCondition), Severity=tostring(properties.essentials.severity), Rule=tostring(properties.essentials.alertRule), TargetResource=tostring(properties.essentials.targetResource), TargetType=tostring(properties.essentials.targetResourceType), Description=tostring(properties.essentials.description)\n| where Rule contains 'platform-backup-' or TargetType =~ 'microsoft.hybridcompute/machines'\n| where MonitorCondition == 'Fired' and AlertState in ('New', 'Acknowledged')\n| extend AgeMinutes=datetime_diff('minute', now(), FireTime)\n| project AlertId=id, FireTime, Severity, AlertState, AgeMinutes, Name=name, Rule, TargetResource, Description\n| order by FireTime desc",
+        "size": 0,
+        "title": "Open alerts - select an alert to review, acknowledge or close it",
+        "queryType": 1,
+        "resourceType": "microsoft.resourcegraph/resources",
+        "crossComponentResources": [
+          "{Subscription}"
+        ],
+        "visualization": "table",
+        "gridSettings": {
+          "filter": true,
+          "formatters": [
+            {
+              "columnMatch": "AlertId",
+              "formatter": 5
+            },
+            {
+              "columnMatch": "FireTime",
+              "formatter": 6
+            },
+            {
+              "columnMatch": "Severity",
+              "formatter": 18,
+              "formatOptions": {
+                "thresholdsOptions": "icons",
+                "thresholdsGrid": [
+                  {
+                    "operator": "==",
+                    "thresholdValue": "Sev0",
+                    "representation": "4",
+                    "text": "{0}{1}"
+                  },
+                  {
+                    "operator": "==",
+                    "thresholdValue": "Sev1",
+                    "representation": "3",
+                    "text": "{0}{1}"
+                  },
+                  {
+                    "operator": "==",
+                    "thresholdValue": "Sev2",
+                    "representation": "2",
+                    "text": "{0}{1}"
+                  },
+                  {
+                    "operator": "Default",
+                    "thresholdValue": null,
+                    "representation": "1",
+                    "text": "{0}{1}"
+                  }
+                ]
+              }
+            },
+            {
+              "columnMatch": "AlertState",
+              "formatter": 18,
+              "formatOptions": {
+                "thresholdsOptions": "icons",
+                "thresholdsGrid": [
+                  {
+                    "operator": "==",
+                    "thresholdValue": "New",
+                    "representation": "3",
+                    "text": "{0}{1}"
+                  },
+                  {
+                    "operator": "Default",
+                    "thresholdValue": null,
+                    "representation": "2",
+                    "text": "{0}{1}"
+                  }
+                ]
+              }
+            },
+            {
+              "columnMatch": "Name",
+              "formatter": 1,
+              "formatOptions": {
+                "linkTarget": "OpenBlade",
+                "linkIsContextBlade": true,
+                "bladeOpenContext": {
+                  "bladeName": "AlertDetailsTemplateBlade",
+                  "bladeParameters": [
+                    {
+                      "name": "alertId",
+                      "source": "column",
+                      "value": "AlertId"
+                    },
+                    {
+                      "name": "alertName",
+                      "source": "column",
+                      "value": "Name"
+                    },
+                    {
+                      "name": "invokedFrom",
+                      "source": "static",
+                      "value": "Workbooks"
+                    }
+                  ],
+                  "extensionName": "Microsoft_Azure_Monitoring"
+                }
+              },
+              "tooltipFormat": {
+                "tooltip": "Open alert details"
+              }
+            }
+          ]
+        }
+      },
+      "name": "activeAlertDetails"
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "### Closing an alert safely\nBefore closing a historical alert, confirm that the server is **Connected**, its heartbeat is **Healthy**, and the affected backup scope shows a newer **Healthy** result. Resource Health alerts record Azure-observed availability transitions and can remain open after the machine has recovered.",
+        "style": "warning"
+      },
+      "name": "closureGuidance"
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "## Historical signals",
+        "style": "info"
+      },
+      "name": "historyTitle"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "AlertsManagementResources\n| where type =~ 'microsoft.alertsmanagement/alerts'\n| extend FireTime=todatetime(properties.essentials.startDateTime), Severity=tostring(properties.essentials.severity), Rule=tostring(properties.essentials.alertRule), TargetType=tostring(properties.essentials.targetResourceType)\n| where FireTime {TimeRange}\n| where Rule contains 'platform-backup-' or TargetType =~ 'microsoft.hybridcompute/machines'\n| summarize Alerts=count() by bin(FireTime, 1d), Severity\n| order by FireTime asc",
+        "size": 0,
+        "title": "Fleet alerts over time",
+        "queryType": 1,
+        "resourceType": "microsoft.resourcegraph/resources",
+        "crossComponentResources": [
+          "{Subscription}"
+        ],
+        "visualization": "columnchart"
+      },
+      "name": "alertHistoryChart"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "AlertsManagementResources\n| where type =~ 'microsoft.alertsmanagement/alerts'\n| extend FireTime=todatetime(properties.essentials.startDateTime), ResolvedTime=todatetime(properties.essentials.monitorConditionResolvedDateTime), AlertState=tostring(properties.essentials.alertState), MonitorCondition=tostring(properties.essentials.monitorCondition), Severity=tostring(properties.essentials.severity), MonitorService=tostring(properties.essentials.monitorService), TargetResource=tostring(properties.essentials.targetResource), Description=tostring(properties.essentials.description)\n| where FireTime {TimeRange}\n| where MonitorService =~ 'Resource Health'\n| project FireTime, ResolvedTime, Severity, AlertState, MonitorCondition, Name=name, TargetResource, Description\n| order by FireTime desc",
+        "size": 0,
+        "title": "Resource Health event history",
+        "queryType": 1,
+        "resourceType": "microsoft.resourcegraph/resources",
+        "crossComponentResources": [
+          "{Subscription}"
+        ],
+        "visualization": "table",
+        "gridSettings": {
+          "filter": true,
+          "formatters": [
+            {
+              "columnMatch": "FireTime",
+              "formatter": 6
+            },
+            {
+              "columnMatch": "ResolvedTime",
+              "formatter": 6
+            },
+            {
+              "columnMatch": "MonitorCondition",
+              "formatter": 18,
+              "formatOptions": {
+                "thresholdsOptions": "icons",
+                "thresholdsGrid": [
+                  {
+                    "operator": "==",
+                    "thresholdValue": "Resolved",
+                    "representation": "success",
+                    "text": "{0}{1}"
+                  },
+                  {
+                    "operator": "Default",
+                    "thresholdValue": null,
+                    "representation": "2",
+                    "text": "{0}{1}"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "name": "resourceHealthHistory"
+    }
+  ],
+  "fallbackResourceIds": [
+    "__FLEET_WORKSPACE_RESOURCE_ID__"
+  ],
+  "$schema": "https://github.com/Microsoft/Application-Insights-Workbooks/blob/master/schema/workbook.json"
+}
