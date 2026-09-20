@@ -25,6 +25,12 @@ variable "noncritical_log_analytics" {
   })
 }
 
+variable "backup_expected_servers" {
+  description = "Server names expected to publish platform backup health telemetry"
+  type        = set(string)
+  default     = []
+}
+
 variable "platform_workloads_state" {
   description = "Backend config for platform-workloads remote state (used to read workload resource groups/backends)"
   type = object({
