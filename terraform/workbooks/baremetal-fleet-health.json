@@ -233,7 +233,7 @@
       "type": 3,
       "content": {
         "version": "KqlItem/1.0",
-        "query": "Syslog\n| where TimeGenerated > ago(30d)\n| where Facility == 'local0'\n| where ProcessName in ('platform-backup', 'platform-backup-health')\n| extend Server=extract(@'server=([^ ]+)', 1, SyslogMessage), Workload=extract(@'workload=([^ ]+)', 1, SyslogMessage), BackupKind=extract(@'kind=([^ ]+)', 1, SyslogMessage), Result=extract(@'status=([^ ]+)', 1, SyslogMessage)\n| summarize arg_max(TimeGenerated, Result, SyslogMessage) by Server, Workload, BackupKind\n| extend AgeHours=datetime_diff('hour', now(), TimeGenerated)\n| extend Health=case(Result != 'success', 'Failed', AgeHours > 30, 'Stale', 'Healthy')\n| extend Scope=case(BackupKind == 'all', 'Overall backup health', isempty(Workload), strcat('All databases / ', BackupKind), strcat(Workload, ' / ', BackupKind))\n| extend Backup=strcat(Server, ' / ', Scope)\n| project Backup, Server, Health, LastResult=Result, LastRun=TimeGenerated, AgeHours",
+        "query": "let BackupEvents = Syslog\n    | where TimeGenerated > ago(30d)\n    | where Facility == 'local0'\n    | where ProcessName in ('platform-backup', 'platform-backup-health')\n    | extend Server=extract(@'server=([^ ]+)', 1, SyslogMessage), Workload=extract(@'workload=([^ ]+)', 1, SyslogMessage), BackupKind=extract(@'kind=([^ ]+)', 1, SyslogMessage), Result=extract(@'status=([^ ]+)', 1, SyslogMessage);\nlet LatestServerState = BackupEvents\n    | where ProcessName == 'platform-backup-health' or Result == 'failed'\n    | summarize arg_max(TimeGenerated, Result) by Server\n    | project Server, OverallResult=Result, OverallTime=TimeGenerated;\nBackupEvents\n| summarize arg_max(TimeGenerated, Result, SyslogMessage) by Server, Workload, BackupKind\n| join kind=leftouter LatestServerState on Server\n| extend AgeHours=datetime_diff('hour', now(), TimeGenerated), OverallAgeHours=datetime_diff('hour', now(), OverallTime)\n| extend Health=case(isempty(OverallResult) or OverallAgeHours > 30, 'Stale', OverallResult != 'success', 'Failed', Result != 'success', 'Failed', AgeHours > 30, 'Stale', 'Healthy')\n| extend Scope=case(BackupKind == 'all', 'Overall backup health', isempty(Workload), strcat('All databases / ', BackupKind), strcat(Workload, ' / ', BackupKind))\n| extend Backup=strcat(Server, ' / ', Scope)\n| project Backup, Server, Health, LastResult=Result, LastRun=TimeGenerated, AgeHours, OverallResult, OverallTime",
         "size": 0,
         "title": "Latest result by backup scope",
         "queryType": 0,
@@ -480,7 +480,7 @@
     {
       "type": 1,
       "content": {
-        "json": "### Closing an alert safely\nBefore closing a historical alert, confirm that the server is **Connected**, its heartbeat is **Healthy**, and the affected backup scope shows a newer **Healthy** result. Resource Health alerts record Azure-observed availability transitions and can remain open after the machine has recovered.",
+        "json": "### Closing an alert safely\nBefore closing a historical alert, confirm that the server is **Connected**, its heartbeat is **Healthy**, and the server's **Overall backup health** tile is **Healthy** with a newer timestamp than the alert. Individual backup successes do not represent recovery until the overall health check has validated the complete backup set. Resource Health alerts record Azure-observed availability transitions and can remain open after the machine has recovered.",
         "style": "warning"
       },
       "name": "closureGuidance"
