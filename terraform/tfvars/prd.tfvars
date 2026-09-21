@@ -14,6 +14,7 @@ noncritical_log_analytics = {
 
 backup_expected_servers = [
   "ns346663",
+  "ns5019527",
 ]
 
 tags = {
