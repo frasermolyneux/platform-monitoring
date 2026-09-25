@@ -12,6 +12,8 @@ noncritical_log_analytics = {
   linux_data_collection_rule_name = "dcr-platform-monitoring-linux-noncritical-dev-uksouth"
 }
 
+backup_expected_servers = []
+
 tags = {
   Environment = "dev",
   Workload    = "platform-monitoring",
