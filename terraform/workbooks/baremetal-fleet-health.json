@@ -224,6 +224,115 @@
     {
       "type": 1,
       "content": {
+        "json": "## Configuration reconciliation",
+        "style": "info"
+      },
+      "name": "configurationPullTitle"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "let ExpectedServers = Heartbeat\n    | where TimeGenerated > ago(30d)\n    | summarize by Server=Computer;\nlet PullEvents = Syslog\n    | where TimeGenerated > ago(30d)\n    | where Facility == 'local0' and ProcessName == 'platform-configuration-pull'\n    | extend Event=parse_json(SyslogMessage)\n    | where tostring(Event.operation) == 'configuration-pull'\n    | extend Server=tostring(Event.server), Status=tostring(Event.status), ExitCode=toint(Event.exit_code), DurationSeconds=toint(Event.duration_seconds), Revision=tostring(Event.revision), FailedTask=tostring(Event.failed_task), Error=tostring(Event.error)\n    | summarize arg_max(TimeGenerated, *) by Server;\nExpectedServers\n| join kind=leftouter PullEvents on Server\n| extend Health=case(isempty(Status), 'Missing', Status != 'success', 'Failed', TimeGenerated < ago(2h), 'Stale', 'Healthy')\n| project Server, Health, LastRun=TimeGenerated, Status, ExitCode, DurationSeconds, Revision, FailedTask, Error\n| order by Server asc",
+        "size": 0,
+        "title": "Latest Ansible pull status",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "crossComponentResources": [
+          "__FLEET_WORKSPACE_RESOURCE_ID__"
+        ],
+        "timeContext": {
+          "durationMs": 2592000000
+        },
+        "visualization": "tiles",
+        "tileSettings": {
+          "titleContent": {
+            "columnMatch": "Server",
+            "formatter": 1
+          },
+          "subtitleContent": {
+            "columnMatch": "LastRun",
+            "formatter": 6
+          },
+          "leftContent": {
+            "columnMatch": "Health",
+            "formatter": 18,
+            "formatOptions": {
+              "thresholdsOptions": "icons",
+              "thresholdsGrid": [
+                {
+                  "operator": "==",
+                  "thresholdValue": "Healthy",
+                  "representation": "success",
+                  "text": "{0}{1}"
+                },
+                {
+                  "operator": "==",
+                  "thresholdValue": "Stale",
+                  "representation": "2",
+                  "text": "{0}{1}"
+                },
+                {
+                  "operator": "Default",
+                  "thresholdValue": null,
+                  "representation": "3",
+                  "text": "{0}{1}"
+                }
+              ]
+            }
+          },
+          "rightContent": {
+            "columnMatch": "DurationSeconds",
+            "formatter": 1
+          },
+          "showBorder": true
+        }
+      },
+      "name": "configurationPullTiles"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "Syslog\n| where TimeGenerated {TimeRange}\n| where Facility == 'local0' and ProcessName == 'platform-configuration-pull'\n| extend Event=parse_json(SyslogMessage)\n| where tostring(Event.operation) == 'configuration-pull' and tostring(Event.status) == 'failed'\n| project TimeGenerated, Server=tostring(Event.server), ExitCode=toint(Event.exit_code), DurationSeconds=toint(Event.duration_seconds), Revision=tostring(Event.revision), FailedTask=tostring(Event.failed_task), Error=tostring(Event.error)\n| order by TimeGenerated desc",
+        "size": 0,
+        "title": "Ansible pull errors",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "crossComponentResources": [
+          "__FLEET_WORKSPACE_RESOURCE_ID__"
+        ],
+        "visualization": "table",
+        "gridSettings": {
+          "filter": true,
+          "formatters": [
+            {
+              "columnMatch": "TimeGenerated",
+              "formatter": 6
+            },
+            {
+              "columnMatch": "ExitCode",
+              "formatter": 18,
+              "formatOptions": {
+                "thresholdsOptions": "icons",
+                "thresholdsGrid": [
+                  {
+                    "operator": "Default",
+                    "thresholdValue": null,
+                    "representation": "3",
+                    "text": "{0}{1}"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "name": "configurationPullErrors"
+    },
+    {
+      "type": 1,
+      "content": {
         "json": "## Backup health",
         "style": "info"
       },
