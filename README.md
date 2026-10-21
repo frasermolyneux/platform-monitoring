@@ -19,6 +19,10 @@ This repository contains Terraform configurations that build a shared Azure Moni
 
 The Terraform-managed production workbooks include a bare-metal fleet health information radiator. It combines Azure Arc connection state, recent Heartbeat telemetry, Ansible pull status and errors, backup results, unresolved alerts, and historical Resource Health signals. Configuration reconciliation is marked failed, stale, or missing when the structured server telemetry does not demonstrate a recent successful pull. Alert rows open the Azure Monitor alert details blade so operators can inspect, acknowledge, or close incidents after confirming that current health evidence is green. Viewers require read access to both the platform-management subscription and the subscription containing the noncritical Log Analytics workspace. Servers expected to publish backup-health telemetry are declared through `backup_expected_servers`; this keeps missing telemetry in an alerting state instead of treating silence as recovery.
 
+The shared stack also alerts on Linux root filesystems below the warning or
+critical free-space thresholds and on structured managed-database health events
+that report connection or binary-log pressure.
+
 ## Contributing
 
 Please read the [contributing](CONTRIBUTING.md) guidance; this is a learning and development project.
