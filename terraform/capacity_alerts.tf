@@ -40,7 +40,7 @@ resource "azurerm_monitor_scheduled_query_rules_alert_v2" "linux_disk_space_warn
   window_duration         = "PT10M"
   scopes                  = [azurerm_log_analytics_workspace.noncritical[0].id]
   severity                = 2
-  description             = "Alerts when a monitored Linux root filesystem has less than 20 percent free space without crossing the critical threshold."
+  description             = "Alerts when a monitored Linux root filesystem has less than 20 percent or 100 GiB free space without crossing the critical threshold."
   enabled                 = true
   auto_mitigation_enabled = true
 
@@ -51,6 +51,12 @@ resource "azurerm_monitor_scheduled_query_rules_alert_v2" "linux_disk_space_warn
           and FreePercent >= 10
           and FreeMegabytes >= 51200
     KQL
+
+    dimension {
+      name     = "Computer"
+      operator = "Include"
+      values   = ["*"]
+    }
 
     time_aggregation_method = "Count"
     threshold               = 0
@@ -93,6 +99,12 @@ resource "azurerm_monitor_scheduled_query_rules_alert_v2" "linux_disk_space_crit
       | where FreePercent < 10 or FreeMegabytes < 51200
     KQL
 
+    dimension {
+      name     = "Computer"
+      operator = "Include"
+      values   = ["*"]
+    }
+
     time_aggregation_method = "Count"
     threshold               = 0
     operator                = "GreaterThan"
@@ -134,6 +146,18 @@ resource "azurerm_monitor_scheduled_query_rules_alert_v2" "database_pressure_war
       | where Result == "warning"
     KQL
 
+    dimension {
+      name     = "Server"
+      operator = "Include"
+      values   = ["*"]
+    }
+
+    dimension {
+      name     = "Workload"
+      operator = "Include"
+      values   = ["*"]
+    }
+
     time_aggregation_method = "Count"
     threshold               = 0
     operator                = "GreaterThan"
@@ -174,6 +198,18 @@ resource "azurerm_monitor_scheduled_query_rules_alert_v2" "database_pressure_cri
       ${local.database_health_state_kql}
       | where Result == "critical"
     KQL
+
+    dimension {
+      name     = "Server"
+      operator = "Include"
+      values   = ["*"]
+    }
+
+    dimension {
+      name     = "Workload"
+      operator = "Include"
+      values   = ["*"]
+    }
 
     time_aggregation_method = "Count"
     threshold               = 0
