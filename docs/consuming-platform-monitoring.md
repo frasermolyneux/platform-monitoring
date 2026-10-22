@@ -8,6 +8,7 @@ The platform-monitoring resources are designed to be long-lived and shared acros
 - Centrally managed data collection rules exposed through `data_collection_rules`, including the production Linux `linux_noncritical` profile
 - The original primary workspace output remains available as `log_analytics` for compatibility
 - Severity-based Azure Monitor action groups (critical, high, moderate, low, informational) exposed via the `monitor_action_groups` output
+- A Production-only Entra-secured webhook group exposed separately as `status_evidence`, without changing the human notification contract
 - Subscription metadata surfaced through the `subscriptions` output for convenience
 
 ## Access and permissions
@@ -116,3 +117,28 @@ Adjust the backend values to the production settings when wiring production work
 - The `noncritical` workspace is for telemetry that may be filtered, sampled, or dropped without hiding an immediate service-impacting condition. It has local shared-key authentication disabled, so consumers must use Azure identities.
 - Choose the action group severity that matches your alert rules and pass the `id` to `azurerm_monitor_metric_alert` or `azurerm_monitor_activity_log_alert` configurations.
 - The central Log Analytics workspace can be used as the target for `azurerm_monitor_diagnostic_setting` or query targets in log-based alerts; use the `workspace_id` output when configuring those resources.
+
+## Private status evidence
+
+The dedicated global `status-evidence-prd` group sends the common alert schema
+only to `https://mxstatus.io/api/integrations/azure`. Its secure webhook uses the
+separate status-service identity from `platform-workloads.status_service_identity`,
+not the deployment identity. That contract's `application_id` is the application
+registration object ID; the client ID forms its `api://` identifier URI.
+The approved Azure Monitor sender has only `Status.Ingest`, not publishing rights.
+The group contains no email, SMS, push, or voice receivers.
+
+Create this group before separately planning subscription wiring against it.
+Service Health requires direct action-group routing and a global group; alert
+processing rules do not affect it. Dedicated broad Service Health and
+recovery-capable Resource Health rules must leave existing human-facing filters
+unchanged. An additive processing rule can cover existing metric/log alerts
+without replacing their actions; existing suppression rules retain precedence.
+
+Test only this dedicated group's secure webhook after the public HTTPS route is
+ready. Verify the received event in private evidence and confirm no public
+incident was created. Evidence is retained privately for operator review; all
+public incident publication remains an explicit operator action.
+Secure-webhook delivery is metered, so do not describe it as unlimited free
+notifications. This integration adds no compute, log-ingestion service, or new
+metric/log alert rules.

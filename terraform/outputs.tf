@@ -90,4 +90,15 @@ output "monitor_action_groups" {
       subscription_id     = var.subscription_id
     }
   }
+
+}
+
+output "status_evidence" {
+  description = "Production-only secure webhook group for private status evidence; never a replacement for human alert routing."
+  value = var.environment == "prd" ? {
+    id                  = azurerm_monitor_action_group.status_evidence[0].id
+    name                = azurerm_monitor_action_group.status_evidence[0].name
+    resource_group_name = azurerm_monitor_action_group.status_evidence[0].resource_group_name
+    subscription_id     = var.subscription_id
+  } : null
 }
