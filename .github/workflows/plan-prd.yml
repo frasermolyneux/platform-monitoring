@@ -1,0 +1,127 @@
+name: Plan Prd
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review, labeled]
+
+permissions: {}
+
+concurrency:
+  group: production-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+jobs:
+  terraform-plan-prd:
+    if: >-
+      github.event.pull_request.draft == false &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      contains(github.event.pull_request.labels.*.name, 'run-prd-plan')
+    permissions:
+      contents: read
+      id-token: write
+    environment: Production
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.repository }}-prd-plan
+      cancel-in-progress: false
+    outputs:
+      subscriptions: ${{ steps.subscriptions.outputs.value }}
+    env:
+      ARM_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
+      ARM_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      ARM_USE_AZUREAD: "true"
+      ARM_USE_OIDC: "true"
+      TF_IN_AUTOMATION: "true"
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
+        with:
+          terraform_version: "1.15.8"
+          terraform_wrapper: false
+      - name: Plan Production core without uploading unredacted state
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          terraform -chdir=terraform init -input=false -backend-config=backends/prd.backend.hcl
+          terraform -chdir=terraform validate
+          terraform -chdir=terraform plan -input=false -lock-timeout=5m \
+            -var-file=tfvars/prd.tfvars -out="$RUNNER_TEMP/prd-core.tfplan"
+          terraform -chdir=terraform show -json "$RUNNER_TEMP/prd-core.tfplan" |
+            jq -r '.resource_changes[]? | [.address, (.change.actions | join(", "))] | @tsv' \
+            >> "$GITHUB_STEP_SUMMARY"
+      - name: Read planned Production subscription matrix
+        id: subscriptions
+        shell: bash
+        run: |
+          set -euo pipefail
+          subscriptions="$(terraform -chdir=terraform show -json "$RUNNER_TEMP/prd-core.tfplan" |
+            jq -ce '.planned_values.outputs.subscriptions.value |
+              if type == "array" and length > 0 then .
+              else error("Production subscription outputs must be known before subscription plans")
+              end')"
+          echo "value=$subscriptions" >> "$GITHUB_OUTPUT"
+      - name: Remove private core plan
+        if: always()
+        shell: bash
+        run: rm -f -- "$RUNNER_TEMP/prd-core.tfplan"
+
+  terraform-subscriptions-plan-prd:
+    needs: terraform-plan-prd
+    permissions:
+      contents: read
+      id-token: write
+    environment: Production
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        subscription: ${{ fromJSON(needs.terraform-plan-prd.outputs.subscriptions) }}
+    concurrency:
+      group: ${{ github.repository }}-prd-plan-${{ matrix.subscription.subscription_id }}
+      cancel-in-progress: false
+    env:
+      ARM_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
+      ARM_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      ARM_USE_AZUREAD: "true"
+      ARM_USE_OIDC: "true"
+      TF_IN_AUTOMATION: "true"
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
+        with:
+          terraform_version: "1.15.8"
+          terraform_wrapper: false
+      - name: Plan Production subscription without uploading unredacted state
+        shell: bash
+        env:
+          SUBSCRIPTION_ID: ${{ matrix.subscription.subscription_id }}
+          TF_VAR_subscription_id: ${{ matrix.subscription.subscription_id }}
+          TF_VAR_subscription_name: ${{ matrix.subscription.name }}
+          TF_VAR_monthly_budget: ${{ matrix.subscription.monthly_budget }}
+        run: |
+          set -euo pipefail
+          umask 077
+          terraform -chdir=terraform-sub init -input=false \
+            -backend-config=backends/prd.backend.hcl \
+            -backend-config="key=${SUBSCRIPTION_ID}-terraform.tfstate"
+          terraform -chdir=terraform-sub validate
+          terraform -chdir=terraform-sub plan -input=false -lock-timeout=5m \
+            -var-file=tfvars/prd.tfvars -out="$RUNNER_TEMP/prd-subscription.tfplan"
+          terraform -chdir=terraform-sub show -json "$RUNNER_TEMP/prd-subscription.tfplan" |
+            jq -r '.resource_changes[]? | [.address, (.change.actions | join(", "))] | @tsv' \
+            >> "$GITHUB_STEP_SUMMARY"
+      - name: Remove private subscription plan
+        if: always()
+        shell: bash
+        run: rm -f -- "$RUNNER_TEMP/prd-subscription.tfplan"
