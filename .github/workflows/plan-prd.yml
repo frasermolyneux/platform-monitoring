@@ -1,0 +1,81 @@
+name: Plan Prd
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review, labeled]
+
+permissions: {}
+
+concurrency:
+  group: production-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+jobs:
+  terraform-plan-prd:
+    if: >-
+      github.event.pull_request.draft == false &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      contains(github.event.pull_request.labels.*.name, 'run-prd-plan')
+    permissions:
+      contents: read
+      id-token: write
+      pull-requests: write
+    environment: Production
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.repository }}-prd
+      cancel-in-progress: false
+    outputs:
+      subscriptions: ${{ steps.subscriptions.outputs.value }}
+    steps:
+      - uses: frasermolyneux/actions/terraform-plan@terraform-plan/v1.4
+        with:
+          terraform-folder: "terraform"
+          terraform-var-file: "tfvars/prd.tfvars"
+          terraform-backend-file: "backends/prd.backend.hcl"
+          plan-file-name: "prd.plan.tfplan"
+          plan-artifact-name: "terraform-plan-prd-core"
+          pr-comment-workspace: "production-core"
+          AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
+          AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+          AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      - name: Read planned Production subscription matrix
+        id: subscriptions
+        shell: bash
+        run: |
+          set -euo pipefail
+          subscriptions="$(terraform -chdir=terraform show -json prd.plan.tfplan |
+            jq -ce '.planned_values.outputs.subscriptions.value |
+              if type == "array" and length > 0 then .
+              else error("Production subscription outputs must be known before subscription plans")
+              end')"
+          echo "value=$subscriptions" >> "$GITHUB_OUTPUT"
+
+  terraform-subscriptions-plan-prd:
+    needs: terraform-plan-prd
+    permissions:
+      contents: read
+      id-token: write
+      pull-requests: write
+    environment: Production
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        subscription: ${{ fromJSON(needs.terraform-plan-prd.outputs.subscriptions) }}
+    concurrency:
+      group: ${{ github.repository }}-prd-${{ matrix.subscription.subscription_id }}
+      cancel-in-progress: false
+    steps:
+      - uses: frasermolyneux/actions/terraform-plan@terraform-plan/v1.4
+        with:
+          terraform-folder: "terraform-sub"
+          terraform-var-file: "tfvars/prd.tfvars"
+          terraform-backend-file: "backends/prd.backend.hcl"
+          backend-key: "${{ matrix.subscription.subscription_id }}-terraform.tfstate"
+          terraform-additional-args: "-var 'subscription_name=${{ matrix.subscription.name }}' -var 'subscription_id=${{ matrix.subscription.subscription_id }}' -var 'monthly_budget=${{ matrix.subscription.monthly_budget }}'"
+          plan-artifact-name: "terraform-plan-prd-${{ matrix.subscription.subscription_id }}"
+          pr-comment-workspace: "production-${{ matrix.subscription.subscription_id }}"
+          AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
+          AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+          AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
