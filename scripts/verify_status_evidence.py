@@ -79,13 +79,24 @@ def main():
                 or not parsed.path.lower().startswith(group_id.lower() + "/notificationstatus/")):
             raise ValueError("Refusing an unexpected native notification polling location.")
     deadline = time.monotonic() + 420
+    progress = None
     while result is None or result.get("state") != "Completed":
+        report = json.dumps({
+            "fields": sorted(result or {}),
+            "state": (result or {}).get("state"),
+            "actions": [{key: action.get(key) for key in (
+                "Name", "MechanismType", "Status", "SubState", "SendTime")}
+                for action in (result or {}).get("actionDetails", [])],
+        }, sort_keys=True)
+        if report != progress:
+            print("Native notification progress: " + report, flush=True)
+            progress = report
         if result is not None and result.get("state") in ("Failed", "Canceled", "Cancelled"):
-            raise RuntimeError("The native notification failed: " + json.dumps(result))
+            raise RuntimeError("The native notification failed: " + report)
         if not polling:
             raise RuntimeError("The native notification is incomplete without a polling location.")
         if time.monotonic() >= deadline:
-            raise TimeoutError("The native secure-webhook test did not complete within seven minutes.")
+            raise TimeoutError("The native secure-webhook test did not complete within seven minutes. Last status: " + report)
         time.sleep(10)
         _, _, result = request(polling)
     print(json.dumps(verify_delivery(result)))

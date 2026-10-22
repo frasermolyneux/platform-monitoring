@@ -27,6 +27,30 @@ def dedicated_group():
 
 
 class NativeDeliveryTests(unittest.TestCase):
+    def test_timeout_reports_response_shape_without_receiver_configuration(self):
+        group_response = MagicMock()
+        group_response.__enter__.return_value = group_response
+        group_response.status = 200
+        group_response.headers = {}
+        group_response.read.return_value = json.dumps(dedicated_group()).encode()
+        acknowledgement = MagicMock()
+        acknowledgement.__enter__.return_value = acknowledgement
+        acknowledgement.status = 202
+        acknowledgement.headers = {"Location":
+            "https://management.azure.com" + GROUP_ID + "/notificationStatus/test?api-version=2023-01-01"}
+        acknowledgement.read.return_value = b'{"context":{"private":"must-not-log"}}'
+        output = io.StringIO()
+        with (patch.dict("os.environ", {"AZURE_SUBSCRIPTION_ID": SUBSCRIPTION, "AZURE_TENANT_ID": TENANT}),
+              patch("verify_status_evidence.subprocess.check_output", return_value='{"accessToken":"test-token"}'),
+              patch("verify_status_evidence.time.monotonic", side_effect=[0, 421]),
+              patch("verify_status_evidence.urlopen", side_effect=[group_response, acknowledgement]),
+              redirect_stdout(output)):
+            with self.assertRaisesRegex(TimeoutError, '"fields": \\["context"\\]'):
+                main()
+        self.assertNotIn("must-not-log", output.getvalue())
+        self.assertNotIn("test-token", output.getvalue())
+        self.assertNotIn("identifierUri", output.getvalue())
+
     def test_sends_only_the_existing_dedicated_secure_webhook(self):
         group = dedicated_group()
         request = notification_request(group, GROUP_ID, TENANT)
