@@ -12,7 +12,8 @@ terraform {
 }
 
 provider "azurerm" {
-  subscription_id = var.subscription_id
+  subscription_id                = var.subscription_id
+  resource_providers_to_register = var.environment == "prd" ? ["Microsoft.AlertsManagement"] : []
 
   features {
     resource_group {
