@@ -128,12 +128,23 @@ registration object ID; the client ID forms its `api://` identifier URI.
 The approved Azure Monitor sender has only `Status.Ingest`, not publishing rights.
 The group contains no email, SMS, push, or voice receivers.
 
-Create this group before separately planning subscription wiring against it.
+Activate and verify the public HTTPS endpoint before creating this group: Azure
+can reject an unresolved webhook hostname with `WebhookServiceUriBlocked`.
+Create the group before separately planning subscription wiring against it.
+The `terraform-sub/status_evidence.tf` wiring is Production-only and adds three
+resources to each managed subscription's existing alerts resource group:
+
+- A global Service Health rule covering all services, locations and event types.
+- A global Resource Health rule without previous/current-state restrictions,
+  including recovery transitions.
+- An always-active AddActionGroups processing rule for Metric/Log signals, both
+  Fired and Resolved, without replacing existing alert actions.
+
 Service Health requires direct action-group routing and a global group; alert
-processing rules do not affect it. Dedicated broad Service Health and
-recovery-capable Resource Health rules must leave existing human-facing filters
-unchanged. An additive processing rule can cover existing metric/log alerts
-without replacing their actions; existing suppression rules retain precedence.
+processing rules do not affect it. Existing human-facing groups and health-rule
+filters remain unchanged. Existing suppression rules retain precedence over the
+additive processing rule, and processing-rule changes can take up to 30 minutes
+to propagate. Development creates none of these resources.
 
 Test only this dedicated group's secure webhook after the public HTTPS route is
 ready. Verify the received event in private evidence and confirm no public
