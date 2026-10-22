@@ -79,8 +79,8 @@ def main():
                 or not parsed.path.lower().startswith(group_id.lower() + "/notificationstatus/")):
             raise ValueError("Refusing an unexpected native notification polling location.")
     deadline = time.monotonic() + 420
-    while result is None or result["state"] != "Completed":
-        if result is not None and result["state"] in ("Failed", "Canceled", "Cancelled"):
+    while result is None or result.get("state") != "Completed":
+        if result is not None and result.get("state") in ("Failed", "Canceled", "Cancelled"):
             raise RuntimeError("The native notification failed: " + json.dumps(result))
         if not polling:
             raise RuntimeError("The native notification is incomplete without a polling location.")

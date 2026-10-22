@@ -1,11 +1,17 @@
 import copy
+import io
+import json
 import unittest
+from contextlib import redirect_stdout
+from unittest.mock import MagicMock, patch
 
-from verify_status_evidence import notification_request, verify_delivery
+from verify_status_evidence import main, notification_request, verify_delivery
 
 
 TENANT = "11111111-1111-1111-1111-111111111111"
-GROUP_ID = "/subscriptions/test/resourceGroups/test/providers/Microsoft.Insights/actionGroups/status-evidence-prd"
+SUBSCRIPTION = "55555555-5555-5555-5555-555555555555"
+GROUP_ID = (f"/subscriptions/{SUBSCRIPTION}/resourceGroups/rg-platform-monitoring-prd-uksouth"
+            "/providers/Microsoft.Insights/actionGroups/status-evidence-prd")
 
 
 def dedicated_group():
@@ -58,3 +64,33 @@ class NativeDeliveryTests(unittest.TestCase):
                 changed["actionDetails"][0][key] = value
                 with self.assertRaises(ValueError):
                     verify_delivery(changed)
+
+    def test_polls_context_only_acknowledgement_until_individual_delivery_completes(self):
+        polling = "https://management.azure.com" + GROUP_ID + "/notificationStatus/test?api-version=2023-01-01"
+        completed = {"state": "Completed", "actionDetails": [{
+            "Name": "private-status-evidence", "MechanismType": "SecureWebhook",
+            "Status": "Completed", "SubState": "Default", "SendTime": "test-time",
+        }]}
+
+        def response(status, body, headers=None):
+            result = MagicMock()
+            result.__enter__.return_value = result
+            result.status = status
+            result.headers = headers or {}
+            result.read.return_value = json.dumps(body).encode()
+            return result
+
+        responses = [
+            response(200, dedicated_group()),
+            response(202, {"context": {"notificationSource": "Microsoft.Insights/TestNotification"}},
+                     {"Location": polling}),
+            response(200, completed),
+        ]
+        with (patch.dict("os.environ", {"AZURE_SUBSCRIPTION_ID": SUBSCRIPTION, "AZURE_TENANT_ID": TENANT}),
+              patch("verify_status_evidence.subprocess.check_output", return_value='{"accessToken":"test-token"}'),
+              patch("verify_status_evidence.time.sleep"),
+              patch("verify_status_evidence.urlopen", side_effect=responses) as requests,
+              redirect_stdout(io.StringIO())):
+            main()
+        self.assertEqual(requests.call_count, 3)
+        self.assertEqual(requests.call_args.args[0].full_url, polling)
