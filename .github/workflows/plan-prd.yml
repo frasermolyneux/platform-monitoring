@@ -23,19 +23,26 @@ jobs:
     environment: Production
     runs-on: ubuntu-latest
     concurrency:
-      group: ${{ github.repository }}-prd
+      group: ${{ github.repository }}-prd-plan
       cancel-in-progress: false
     outputs:
       subscriptions: ${{ steps.subscriptions.outputs.value }}
     steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: false
       - uses: frasermolyneux/actions/terraform-plan@terraform-plan/v1.4
         with:
+          perform-checkout: "false"
           terraform-folder: "terraform"
           terraform-var-file: "tfvars/prd.tfvars"
           terraform-backend-file: "backends/prd.backend.hcl"
           plan-file-name: "prd.plan.tfplan"
           plan-artifact-name: "terraform-plan-prd-core"
           pr-comment-workspace: "production-core"
+          terraform-additional-args: "-lock-timeout=5m"
           AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
           AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
           AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
@@ -64,16 +71,22 @@ jobs:
       matrix:
         subscription: ${{ fromJSON(needs.terraform-plan-prd.outputs.subscriptions) }}
     concurrency:
-      group: ${{ github.repository }}-prd-${{ matrix.subscription.subscription_id }}
+      group: ${{ github.repository }}-prd-plan-${{ matrix.subscription.subscription_id }}
       cancel-in-progress: false
     steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: false
       - uses: frasermolyneux/actions/terraform-plan@terraform-plan/v1.4
         with:
+          perform-checkout: "false"
           terraform-folder: "terraform-sub"
           terraform-var-file: "tfvars/prd.tfvars"
           terraform-backend-file: "backends/prd.backend.hcl"
           backend-key: "${{ matrix.subscription.subscription_id }}-terraform.tfstate"
-          terraform-additional-args: "-var 'subscription_name=${{ matrix.subscription.name }}' -var 'subscription_id=${{ matrix.subscription.subscription_id }}' -var 'monthly_budget=${{ matrix.subscription.monthly_budget }}'"
+          terraform-additional-args: "-lock-timeout=5m -var 'subscription_name=${{ matrix.subscription.name }}' -var 'subscription_id=${{ matrix.subscription.subscription_id }}' -var 'monthly_budget=${{ matrix.subscription.monthly_budget }}'"
           plan-artifact-name: "terraform-plan-prd-${{ matrix.subscription.subscription_id }}"
           pr-comment-workspace: "production-${{ matrix.subscription.subscription_id }}"
           AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
