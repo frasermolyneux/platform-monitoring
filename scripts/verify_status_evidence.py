@@ -39,13 +39,15 @@ def notification_request(group, group_id, tenant_id):
 
 def verify_delivery(result):
     actions = result["actionDetails"]
-    if result["state"] != "Completed" or len(actions) != 1:
+    if result["state"] not in ("Completed", "Complete") or len(actions) != 1:
         raise ValueError("The native test did not complete exactly one notification.")
     action = actions[0]
+    delivery = (result["state"], action["Status"], action.get("SubState"))
     if (action["Name"] != "private-status-evidence" or action["MechanismType"] != "SecureWebhook"
-            or action["Status"] != "Completed" or action["SubState"] != "Default"):
+            or delivery not in (("Completed", "Completed", "Default"), ("Complete", "Succeeded", None))):
         raise ValueError("The dedicated secure webhook did not report the documented successful delivery result.")
-    return {key: action[key] for key in ("Name", "MechanismType", "Status", "SubState", "SendTime")}
+    return {key: action.get(key) if key == "SubState" else action[key]
+            for key in ("Name", "MechanismType", "Status", "SubState", "SendTime")}
 
 
 def main():
@@ -80,7 +82,7 @@ def main():
             raise ValueError("Refusing an unexpected native notification polling location.")
     deadline = time.monotonic() + 420
     progress = None
-    while result is None or result.get("state") != "Completed":
+    while result is None or result.get("state") not in ("Completed", "Complete"):
         report = json.dumps({
             "fields": sorted(result or {}),
             "state": (result or {}).get("state"),

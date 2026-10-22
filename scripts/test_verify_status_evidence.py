@@ -89,11 +89,25 @@ class NativeDeliveryTests(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     verify_delivery(changed)
 
+    def test_observed_native_success_requires_exact_receiver_and_success_status(self):
+        result = {"state": "Complete", "actionDetails": [{
+            "Name": "private-status-evidence", "MechanismType": "SecureWebhook",
+            "Status": "Succeeded", "SubState": None, "SendTime": "test-time",
+        }]}
+        self.assertEqual(verify_delivery(result)["Status"], "Succeeded")
+        for key, value in (("Status", "Failed"), ("Status", "Pending"), ("SubState", "Failed"),
+                           ("MechanismType", "Webhook"), ("Name", "another-webhook")):
+            with self.subTest(key=key, value=value):
+                changed = copy.deepcopy(result)
+                changed["actionDetails"][0][key] = value
+                with self.assertRaises(ValueError):
+                    verify_delivery(changed)
+
     def test_polls_context_only_acknowledgement_until_individual_delivery_completes(self):
         polling = "https://management.azure.com" + GROUP_ID + "/notificationStatus/test?api-version=2023-01-01"
-        completed = {"state": "Completed", "actionDetails": [{
+        completed = {"state": "Complete", "actionDetails": [{
             "Name": "private-status-evidence", "MechanismType": "SecureWebhook",
-            "Status": "Completed", "SubState": "Default", "SendTime": "test-time",
+            "Status": "Succeeded", "SubState": None, "SendTime": "test-time",
         }]}
 
         def response(status, body, headers=None):
