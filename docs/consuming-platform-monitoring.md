@@ -139,6 +139,13 @@ Test only this dedicated group's secure webhook after the public HTTPS route is
 ready. Verify the received event in private evidence and confirm no public
 incident was created. Evidence is retained privately for operator review; all
 public incident publication remains an explicit operator action.
+The main-only **Verify Status Evidence** workflow reads the existing dedicated
+group and refuses non-webhook receivers, a changed URL or tenant, and disabled
+Entra/common-schema settings. It sends one native Service Health test through
+the `2023-01-01` action-group `createNotifications` API and checks the individual
+secure-webhook result, not just overall test completion. It uploads no receiver
+configuration or token artifacts. A successful workflow still requires checking
+the application's private evidence and unchanged public incident count.
 Secure-webhook delivery is metered, so do not describe it as unlimited free
 notifications. This integration adds no compute, log-ingestion service, or new
 metric/log alert rules.
