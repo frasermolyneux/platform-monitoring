@@ -118,6 +118,54 @@ Adjust the backend values to the production settings when wiring production work
 - Choose the action group severity that matches your alert rules and pass the `id` to `azurerm_monitor_metric_alert` or `azurerm_monitor_activity_log_alert` configurations.
 - The central Log Analytics workspace can be used as the target for `azurerm_monitor_diagnostic_setting` or query targets in log-based alerts; use the `workspace_id` output when configuring those resources.
 
+## Cost-bounded workload baselines
+
+`platform-monitoring` remains the strategic monitoring owner. Workload
+repositories own instrumentation and workload-specific alert definitions while
+consuming the shared workspaces, collection rules and severity action groups;
+do not move Terraform state simply to centralise ownership.
+
+Use **Service → Component → Check** for public status. Stable workload/component
+IDs map private evidence to the correct component; multiple independent checks
+aggregate into that component, and components into their service. Share the same
+logical check identity for dependencies displayed on both brands. Missing or stale
+expected signals are unknown, never proof of health. Public availability probes
+do not replace private queue, job, host, backup or data-freshness monitoring.
+
+The initial status expansion uses existing bare-metal capacity and five-minute
+HTTP baselines. Additional public-host routing and fixed-database readiness checks
+are offset by slower existing App Service liveness checks. Existing consumption
+Function cadence is unchanged. Do not probe paid provider lookups, perform real
+business transactions, call forum task runners, or wake auto-pausing databases
+merely to populate a green status. Authentication redirects only establish that
+the public route responds; static statistics and CDN health endpoints do not prove
+updater freshness or asset completeness.
+
+Repair existing alerts before adding new ones. Scheduled jobs use
+`Audit:JobCompleted` / `Audit:JobFailed` and
+`customDimensions["Audit.SourceComponent"]`; scope to the workload role, use
+actual schedules and handle missing successful completions explicitly. Elapsed
+age is `now() - LastSuccess`, not a reversed `datetime_diff`. Sampled request
+failure totals use `sum(itemCount)`, a metric measure column and `Total`
+aggregation, not the number of summary rows. Preserve existing human and private
+evidence routes, resource identities, evaluation frequency and alert-series count
+when fixing those contracts.
+
+The legacy Portal Sync import-job rule is intentionally retained under its
+existing Terraform/Azure identity and reused for player-tag reconciliation and
+rotation cleanup. This avoids creating additional alert resources or dimension
+series. Weekly completion freshness requires separate durable state or a longer
+supported query window and is not provided by that rule; weekly failures are
+still covered by the existing job-failure alert.
+
+No additional workspace, ingestion pipeline, Azure availability test, paid canary,
+or alert resource is authorised by this baseline. New rules/dimensions, increased
+collection frequency and additional consumption-backed checks require cost review.
+Compare state-backed plans for both environments before applying: alert fixes
+should be in-place only, without additions or replacements. Request-count budgets
+do not guarantee identical telemetry bytes or invoices; compare subsequent billing
+and ingestion against the pre-release baseline before asserting cost neutrality.
+
 ## Private status evidence
 
 The dedicated global `status-evidence-prd` group sends the common alert schema
