@@ -40,12 +40,10 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
       - uses: frasermolyneux/actions/terraform-setup@terraform-setup/v1.0.0
-        id: setup
         with:
           terraform-folder: terraform
           terraform_wrapper: "false"
       - name: Plan Production core without uploading unredacted state
-        id: plan
         shell: bash
         run: |
           set -euo pipefail
@@ -68,15 +66,6 @@ jobs:
               else error("Production subscription outputs must be known before subscription plans")
               end')"
           echo "value=$subscriptions" >> "$GITHUB_OUTPUT"
-      - name: Retain bounded core plan execution evidence
-        if: always() && !cancelled() && contains(fromJSON('["success","failure"]'), steps.plan.outcome)
-        uses: frasermolyneux/actions/terraform-receipt@terraform-receipt/v1.0.0
-        with:
-          context-directory: ${{ steps.setup.outputs.directory }}
-          operation: plan
-          outcome: ${{ steps.plan.outcome == 'success' && 'success' || 'failure' }}
-          environment: prd
-          terraform-var-file: tfvars/prd.tfvars
       - name: Remove private core plan
         if: always()
         shell: bash
@@ -110,12 +99,10 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
       - uses: frasermolyneux/actions/terraform-setup@terraform-setup/v1.0.0
-        id: setup
         with:
           terraform-folder: terraform-sub
           terraform_wrapper: "false"
       - name: Plan Production subscription without uploading unredacted state
-        id: plan
         shell: bash
         env:
           SUBSCRIPTION_ID: ${{ matrix.subscription.subscription_id }}
@@ -134,15 +121,6 @@ jobs:
           terraform -chdir=terraform-sub show -json "$RUNNER_TEMP/prd-subscription.tfplan" |
             jq -r '.resource_changes[]? | [.address, (.change.actions | join(", "))] | @tsv' \
             >> "$GITHUB_STEP_SUMMARY"
-      - name: Retain bounded subscription plan execution evidence
-        if: always() && !cancelled() && contains(fromJSON('["success","failure"]'), steps.plan.outcome)
-        uses: frasermolyneux/actions/terraform-receipt@terraform-receipt/v1.0.0
-        with:
-          context-directory: ${{ steps.setup.outputs.directory }}
-          operation: plan
-          outcome: ${{ steps.plan.outcome == 'success' && 'success' || 'failure' }}
-          environment: prd
-          terraform-var-file: tfvars/prd.tfvars
       - name: Remove private subscription plan
         if: always()
         shell: bash
