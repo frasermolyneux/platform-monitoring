@@ -2,6 +2,51 @@
 
 The platform-monitoring resources are designed to be long-lived and shared across downstream workloads. Both development and production environments are kept online; the development environment is *not* recycled on a schedule, so remote state references remain stable between runs.
 
+## Process health contract
+
+`contract/process-health-policy.json` owns the Portal process-health bindings,
+cadence, freshness and job completion deadlines. Workloads compile the mirrored
+`ProcessHealthTelemetry.cs`; status only consumes the classified observations.
+Synchronize the explicitly selected repository roots with
+`python contract\sync-process-health.py --target <producer-root> --policy-only-target <status-root>`,
+then repeat with `--check` before release. Never edit the consumer mirrors.
+
+The agent publishes expected-fleet progress and ban delivery/import convergence.
+Intent comes from the complete configured server inventory, including enabled
+capabilities whose agents cannot start. A quiet log or unchanged ban content is
+not failure; Service Bus publication is not proof of a persisted import. Individual
+missing agents and overdue deliveries contribute Degraded, not fleet Outage.
+Sync persists actual job outcomes in a private container in its existing host
+storage, preserving original last-success/failure times across restarts and weekly
+schedules. Partial failures cannot produce successful job completion.
+
+Publishers emit four aggregate `ProcessHealthSnapshot` and seven private
+`ProcessJobSnapshot` records per five minutes per environment. Public records
+contain counts and source identity only; server identities, paths, errors and ban
+contents stay private. Missing, stale or unobserved evidence is Unknown, never
+healthy by default. Existing Sync alerts consume the contract using their current
+rule identities, evaluation schedules and action groups; no per-server paid
+alert series or new alert resources are introduced.
+
+At the reviewed UK South Analytics ingestion rate of US$2.88/GB, allowing 4 KiB
+per billed record gives 190,080 records/30 days across dev and production,
+approximately US$2.24 ingestion. A conservative 300,000 existing Hot LRS operations
+at the higher reviewed write rate (US$0.059/10,000, versus US$0.0047 reads) add
+US$1.77, with negligible stored state. Expected usage is lower, approximately
+US$3/month combined. This is below the approved US$5 incremental allowance,
+not a hard billing cap; significant cadence, record-size or environment increases
+require a new estimate. Existing always-on compute, workspaces, storage accounts
+and alert-series counts are unchanged. Verify actual billed record sizes after
+producer rollout; do not trade away monitoring coverage to conceal cost.
+
+Deploy producers and their existing alert updates before status consumption.
+Verify all four identities, roles and original timestamps in the correct
+Application Insights resource; then require the status `--refresh-monitoring`
+preflight. First-ever jobs remain Unknown until they actually complete, including
+the weekly image job. Do not fabricate initial successes or backfill public history.
+Portal-web remains the detailed operational surface; status publishes aggregate
+capability impact only.
+
 ## What this project provides
 
 - Central Log Analytics workspaces exposed through `log_analytics_workspaces`, including a stable `primary` workspace and optional service classes such as `noncritical`
