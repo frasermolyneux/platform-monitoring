@@ -129,13 +129,26 @@ Use **Service → Component → Check** for public status. Stable workload/compo
 IDs map private evidence to the correct component; multiple independent checks
 aggregate into that component, and components into their service. Share the same
 logical check identity for dependencies displayed on both brands. Missing or stale
-expected signals are unknown, never proof of health. Public availability probes
-do not replace private queue, job, host, backup or data-freshness monitoring.
+expected signals are unknown, never proof of health. Availability measurements do
+not replace private queue, job, host, backup or data-freshness monitoring.
 
-The initial status expansion uses existing bare-metal capacity and five-minute
-HTTP baselines. Additional public-host routing and fixed-database readiness checks
-are offset by slower existing App Service liveness checks. Existing consumption
-Function cadence is unchanged. Do not probe paid provider lookups, perform real
+Sitewatch owns public endpoint targets, active measurement, cadence/retries,
+native Application Insights availability results and operational alerts.
+Status consumes those results; it must not run workload probes or a monitoring
+sidecar, including to avoid monitoring cost. Status owns public aggregation,
+history, incidents/notices and presentation, not strategic monitoring policy.
+
+The corrected expansion preserves all 31 distinct public inputs (33 brand
+projections). Sitewatch reuses ten existing measurements and adds 21 reviewed
+baselines to its existing 14 checks. Existing checks retain their request budgets;
+20 new baselines run every 300 seconds and Server Events every 60 seconds, with
+zero retries, headers-only completion and no redirect following. The existing
+three regional Flex Consumption apps and telemetry resources are reused, with
+no always-ready capacity. New baseline results route once to the existing
+primary Sitewatch App Insights resource; 21 availability metric alerts retain
+strategic action-group routing.
+
+Do not probe paid provider lookups, perform real
 business transactions, call forum task runners, or wake auto-pausing databases
 merely to populate a green status. Authentication redirects only establish that
 the public route responds; static statistics and CDN health endpoints do not prove
@@ -158,13 +171,42 @@ series. Weekly completion freshness requires separate durable state or a longer
 supported query window and is not provided by that rule; weekly failures are
 still covered by the existing job-failure alert.
 
-No additional workspace, ingestion pipeline, Azure availability test, paid canary,
-or alert resource is authorised by this baseline. New rules/dimensions, increased
-collection frequency and additional consumption-backed checks require cost review.
-Compare state-backed plans for both environments before applying: alert fixes
-should be in-place only, without additions or replacements. Request-count budgets
-do not guarantee identical telemetry bytes or invoices; compare subsequent billing
-and ingestion against the pre-release baseline before asserting cost neutrality.
+The authorised correction has a US$15/month incremental normal-operation planning
+allowance, not a hard cap or a zero-cost guarantee. No new workspace, compute,
+paid Standard web test or business-transaction canary is included. Native SDK
+availability results still incur telemetry ingestion; Flex Consumption executions
+and new metric-alert series also require cost accounting. Changes beyond the
+reviewed coverage, cadence and alert series require another cost review rather
+than moving collection back into status.
+
+Compare complete state-backed plans for both environments before applying.
+This migration's production plan is 21 alert additions and three existing app
+configuration updates, with no destruction. Previously repaired Portal Sync and
+Server Events alerts remain in place. Compare actual ingestion/execution/alert
+usage against the baseline and allowance; request counts do not guarantee a bill.
+
+## Status consumption boundary
+
+Producer and consumer mirror versioned telemetry and binding fixtures, including
+site/component/check identity, resource aliases, expected regions and cadence.
+Production Sitewatch input validation rejects removal or drift of a consumed
+binding; status catalogue tests enforce matching references. Deploy the producer
+first and prove fresh measurements in every expected region before cutover.
+
+The independent status consumer uses a dedicated certificate-authenticated Entra
+reader with Monitoring Reader on exact Application Insights resources. It has no
+directory API permissions, workload write access or deployment credentials.
+The existing platform-workloads OIDC identity rotates its certificate through
+Key Vault; private keys never enter Terraform state or the database container.
+
+Status queries latest native measurements per identity/region with `arg_max`,
+never a success average that hides a fresh regional outage. Explicit owning-site
+filters and shared canonical references preserve brand isolation. Its background
+worker writes cached observations; publication/public reads never await Azure,
+GitHub or workload endpoints. Failed collection retains original timestamps and
+ages to unknown. Durable cursors prevent repolls/restarts from inflating history.
+The consumer's `--refresh-monitoring` preflight rejects incomplete fresh regional
+coverage; real failed checks are valid observations, never fabricated green.
 
 ## Private status evidence
 

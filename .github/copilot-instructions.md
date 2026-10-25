@@ -42,6 +42,14 @@ Use both `prd` files for production. Subscription-root plans also require the ma
 
 ## Safety
 
+- Preserve strategic monitoring ownership: workloads instrument and own their
+  specific alerts; Sitewatch owns availability targets, measurement and cadence.
+  Status consumes cached monitoring signals and owns public presentation/history
+  and operator publishing. Never move workload probing into status or a sidecar
+  to meet a cost target; escalate coverage/cost conflicts.
+- Contract changes require coordinated producer/consumer fixtures, explicit
+  source identity/region filtering and producer-first verified regional coverage.
+  Missing/stale input must not become fabricated healthy observations.
 - Preserve remote-state and published output shapes used by downstream workloads.
 - Do not collapse the two Terraform roots or mix their state.
 - Treat action-group, alert, retention, diagnostic, and Key Vault changes as broad operational-impact changes.

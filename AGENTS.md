@@ -33,6 +33,14 @@ Run state-backed plans only for infrastructure-affecting changes, using matching
 
 ## Guardrails
 
+- This is the strategic monitoring owner. Workloads own instrumentation and
+  workload-specific alert definitions using shared infrastructure; Sitewatch owns
+  public availability collection. Status owns read-only consumption, public
+  aggregation/history and operator publishing, never workload probes or a
+  monitoring sidecar. Cost constraints do not override these boundaries.
+- Keep producer/consumer telemetry and binding contracts aligned, retain stale/
+  unknown semantics and verify regional coverage before status cutover. Reader
+  identities must use exact resource scopes, not deployment credentials.
 - Keep the shared stack and subscription-alert stack boundaries distinct.
 - Preserve provider aliases and the `platform-workloads` remote-state/output contracts.
 - Key Vault uses RBAC and purge protection; alert contact values are manually managed secrets.
