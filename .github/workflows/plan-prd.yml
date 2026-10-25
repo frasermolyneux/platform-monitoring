@@ -39,16 +39,18 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
           persist-credentials: false
-      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
+      - uses: frasermolyneux/actions/terraform-setup@terraform-setup/v1.0.0
+        id: setup
         with:
-          terraform_version: "1.15.8"
-          terraform_wrapper: false
+          terraform-folder: terraform
+          terraform_wrapper: "false"
       - name: Plan Production core without uploading unredacted state
+        id: plan
         shell: bash
         run: |
           set -euo pipefail
           umask 077
-          terraform -chdir=terraform init -input=false -backend-config=backends/prd.backend.hcl
+          terraform -chdir=terraform init -lockfile=readonly -input=false -backend-config=backends/prd.backend.hcl
           terraform -chdir=terraform validate
           terraform -chdir=terraform plan -input=false -lock-timeout=5m \
             -var-file=tfvars/prd.tfvars -out="$RUNNER_TEMP/prd-core.tfplan"
@@ -66,6 +68,15 @@ jobs:
               else error("Production subscription outputs must be known before subscription plans")
               end')"
           echo "value=$subscriptions" >> "$GITHUB_OUTPUT"
+      - name: Retain bounded core plan execution evidence
+        if: always() && !cancelled() && contains(fromJSON('["success","failure"]'), steps.plan.outcome)
+        uses: frasermolyneux/actions/terraform-receipt@terraform-receipt/v1.0.0
+        with:
+          context-directory: ${{ steps.setup.outputs.directory }}
+          operation: plan
+          outcome: ${{ steps.plan.outcome == 'success' && 'success' || 'failure' }}
+          environment: prd
+          terraform-var-file: tfvars/prd.tfvars
       - name: Remove private core plan
         if: always()
         shell: bash
@@ -98,11 +109,13 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
           persist-credentials: false
-      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
+      - uses: frasermolyneux/actions/terraform-setup@terraform-setup/v1.0.0
+        id: setup
         with:
-          terraform_version: "1.15.8"
-          terraform_wrapper: false
+          terraform-folder: terraform-sub
+          terraform_wrapper: "false"
       - name: Plan Production subscription without uploading unredacted state
+        id: plan
         shell: bash
         env:
           SUBSCRIPTION_ID: ${{ matrix.subscription.subscription_id }}
@@ -112,7 +125,7 @@ jobs:
         run: |
           set -euo pipefail
           umask 077
-          terraform -chdir=terraform-sub init -input=false \
+          terraform -chdir=terraform-sub init -lockfile=readonly -input=false \
             -backend-config=backends/prd.backend.hcl \
             -backend-config="key=${SUBSCRIPTION_ID}-terraform.tfstate"
           terraform -chdir=terraform-sub validate
@@ -121,6 +134,15 @@ jobs:
           terraform -chdir=terraform-sub show -json "$RUNNER_TEMP/prd-subscription.tfplan" |
             jq -r '.resource_changes[]? | [.address, (.change.actions | join(", "))] | @tsv' \
             >> "$GITHUB_STEP_SUMMARY"
+      - name: Retain bounded subscription plan execution evidence
+        if: always() && !cancelled() && contains(fromJSON('["success","failure"]'), steps.plan.outcome)
+        uses: frasermolyneux/actions/terraform-receipt@terraform-receipt/v1.0.0
+        with:
+          context-directory: ${{ steps.setup.outputs.directory }}
+          operation: plan
+          outcome: ${{ steps.plan.outcome == 'success' && 'success' || 'failure' }}
+          environment: prd
+          terraform-var-file: tfvars/prd.tfvars
       - name: Remove private subscription plan
         if: always()
         shell: bash

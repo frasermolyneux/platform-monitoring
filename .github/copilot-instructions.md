@@ -12,7 +12,7 @@
 - `terraform/remote_state.tf` reads environment resource groups from `platform-workloads`.
 - `terraform-sub` uses an `azurerm.action_group` provider alias to reference shared action groups across subscriptions.
 
-Both roots require Terraform `>= 1.15.6` and AzureRM `~> 5.2.0`. Preserve provider aliases and constraints.
+Each root's `providers.tf` defines its CLI compatibility and provider bounds; use that root's committed CLI pin and provider lock for exact selections. Preserve provider aliases and constraints.
 
 Key Vault uses RBAC and purge protection. Alert email and phone values are operational secrets seeded and rotated through the process in `docs/manual-steps.md`; do not put their values in source control.
 
@@ -24,17 +24,17 @@ Validate every affected Terraform root:
 
 ```pwsh
 terraform -chdir=terraform fmt -check -recursive
-terraform -chdir=terraform init -backend=false -upgrade
+terraform -chdir=terraform init -backend=false -lockfile=readonly
 terraform -chdir=terraform validate
 terraform -chdir=terraform-sub fmt -check -recursive
-terraform -chdir=terraform-sub init -backend=false -upgrade
+terraform -chdir=terraform-sub init -backend=false -lockfile=readonly
 terraform -chdir=terraform-sub validate
 ```
 
 For infrastructure changes, initialize the matching environment before planning the core stack:
 
 ```pwsh
-terraform -chdir=terraform init -reconfigure -backend-config=backends/dev.backend.hcl
+terraform -chdir=terraform init -lockfile=readonly -reconfigure -backend-config=backends/dev.backend.hcl
 terraform -chdir=terraform plan -var-file=tfvars/dev.tfvars
 ```
 
@@ -55,6 +55,6 @@ Use both `prd` files for production. Subscription-root plans also require the ma
 - Treat action-group, alert, retention, diagnostic, and Key Vault changes as broad operational-impact changes.
 - Do not apply, import, move, or remove state unless explicitly requested.
 - Use OIDC or managed identity; never add client secrets, contact values, tokens, or connection strings.
-- `.terraform.lock.hcl` is generated locally, ignored, and never committed.
+- Commit each root's `.terraform-version` and `.terraform.lock.hcl`. Select the exact root CLI pin before invoking Terraform; normal initialization uses `-lockfile=readonly`. Regenerate provider selections only in a reviewed dependency-update PR; never commit state, plans, or `.terraform/`.
 
 See [docs/manual-steps.md](../docs/manual-steps.md) and [docs/consuming-platform-monitoring.md](../docs/consuming-platform-monitoring.md).

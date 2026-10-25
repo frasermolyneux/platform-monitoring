@@ -22,10 +22,10 @@ For Terraform changes, validate each affected root:
 
 ```pwsh
 terraform -chdir=terraform fmt -check -recursive
-terraform -chdir=terraform init -backend=false -upgrade
+terraform -chdir=terraform init -backend=false -lockfile=readonly
 terraform -chdir=terraform validate
 terraform -chdir=terraform-sub fmt -check -recursive
-terraform -chdir=terraform-sub init -backend=false -upgrade
+terraform -chdir=terraform-sub init -backend=false -lockfile=readonly
 terraform -chdir=terraform-sub validate
 ```
 
@@ -46,6 +46,6 @@ Run state-backed plans only for infrastructure-affecting changes, using matching
 - Key Vault uses RBAC and purge protection; alert contact values are manually managed secrets.
 - Action-group or alert changes can alter tenant-wide incident routing.
 - Use OIDC or managed identity; never add credentials to Terraform or documentation.
-- `.terraform.lock.hcl` is local generated state, ignored, and not committed.
+- Commit each root's `.terraform-version` and `.terraform.lock.hcl`. Select the exact root CLI pin before invoking Terraform; normal initialization uses `-lockfile=readonly`. Regenerate provider selections only in a reviewed dependency-update PR; never commit state, plans, or `.terraform/`.
 
 See [README.md](README.md), [docs/manual-steps.md](docs/manual-steps.md), and [docs/consuming-platform-monitoring.md](docs/consuming-platform-monitoring.md).
