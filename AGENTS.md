@@ -33,6 +33,13 @@ Run state-backed plans only for infrastructure-affecting changes, using matching
 
 ## Guardrails
 
+- Process health policy and its shared producer helper are canonical in `contract/`.
+  Synchronize mirrors with the contract utility and verify them with `--check`.
+  Producers classify actual complete-inventory/job outcomes; status never owns
+  workload deadlines or probes. Preserve bounded cadence, private operational
+  detail, truthful Unknown states, producer-first activation and the reviewed
+  US$5/month incremental process-health allowance.
+
 - This is the strategic monitoring owner. Workloads own instrumentation and
   workload-specific alert definitions using shared infrastructure; Sitewatch owns
   public availability collection. Status owns read-only consumption, public
