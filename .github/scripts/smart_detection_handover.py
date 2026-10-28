@@ -1,0 +1,135 @@
+"""Rebind three existing alerts without changing their definitions or recipients."""
+
+import copy
+import json
+import os
+import subprocess
+import time
+from urllib.parse import quote
+
+
+SUBSCRIPTION = "903b6685-c12a-4703-ac54-7ec1ff15ca43"
+BASE = f"/subscriptions/{SUBSCRIPTION}/resourceGroups/"
+OLD = BASE + ("rg-travel-itinerary-prd-swedencentral/providers/"
+              "microsoft.insights/actiongroups/Application Insights Smart Detection")
+NEW = BASE + ("rg-platform-monitoring-smart-detection-prd-swedencentral/providers/"
+              "microsoft.insights/actiongroups/Application Insights Smart Detection")
+ROLES = [
+    {"name": "Monitoring Contributor", "roleId": "749f88d5-cbae-40b8-bcfc-e573ddc772fa",
+     "useCommonAlertSchema": True},
+    {"name": "Monitoring Reader", "roleId": "43d0d8ad-25c7-4714-9337-8ba259a9fe05",
+     "useCommonAlertSchema": True},
+]
+RULES = {
+    BASE + f"rg-{name}-prd-{region}/providers/Microsoft.AlertsManagement/"
+    f"smartDetectorAlertRules/Failure Anomalies - ai-{name}-prd-{region}":
+    BASE + f"rg-{name}-prd-{region}/providers/Microsoft.Insights/components/ai-{name}-prd-{region}"
+    for name, region in (
+        ("craftpledge", "swedencentral"), ("geo-location", "swedencentral"),
+        ("platform-notifications", "uksouth"),
+    )
+}
+
+
+def azure(method, path, version, body=None):
+    arguments = [
+        "az", "rest", "--method", method,
+        "--url", "https://management.azure.com" + quote(path, safe="/") + "?api-version=" + version,
+        "--only-show-errors", "--output", "json",
+    ]
+    if body is not None:
+        arguments += ["--body", json.dumps(body)]
+    result = subprocess.run(arguments, text=True, capture_output=True, check=False)
+    if result.returncode:
+        raise RuntimeError("Azure operation failed; diagnostic output withheld.")
+    return json.loads(result.stdout)
+
+
+def references():
+    response = azure("post", "/providers/Microsoft.ResourceGraph/resources", "2022-10-01", {
+        "subscriptions": [SUBSCRIPTION],
+        "query": (
+            "Resources | where type !~ 'microsoft.insights/actiongroups' "
+            f"| where tolower(tostring(properties)) contains '{OLD.lower()}' | project id"
+        ),
+        "options": {"resultFormat": "objectArray", "$top": 1000},
+    })
+    rows = response["data"]
+    if (response.get("$skipToken") or response["totalRecords"] != len(rows)
+            or response["count"] != len(rows)):
+        raise ValueError("Reference inventory is incomplete.")
+    return {row["id"].lower() for row in rows}
+
+
+def validate_group(group, identifier):
+    properties = group["properties"]
+    if (group["id"].lower() != identifier.lower()
+            or group["type"].lower() != "microsoft.insights/actiongroups"
+            or group["location"].lower() != "global"
+            or properties.get("enabled") is not True
+            or properties.get("groupShortName") != "SmartDetect"
+            or sorted(properties.get("armRoleReceivers", []), key=lambda entry: entry["roleId"])
+            != sorted(ROLES, key=lambda entry: entry["roleId"])
+            or any(value for key, value in properties.items()
+                   if key.endswith("Receivers") and key != "armRoleReceivers")):
+        raise ValueError("Notification configuration differs from the reviewed two-role contract.")
+
+
+def replacement(rule, identifier, scope):
+    properties = rule["properties"]
+    if (rule["id"].lower() != identifier.lower()
+            or rule["type"].lower() != "microsoft.alertsmanagement/smartdetectoralertrules"
+            or [value.lower() for value in properties.get("scope", [])] != [scope.lower()]
+            or properties.get("detector", {}).get("id") != "FailureAnomaliesDetector"):
+        raise ValueError("Alert identity or instrumentation scope differs from the reviewed contract.")
+    body = {"location": rule["location"], "tags": rule.get("tags") or {},
+            "properties": copy.deepcopy(properties)}
+    groups = body["properties"]["actionGroups"]["groupIds"]
+    if sum(value.lower() in (OLD.lower(), NEW.lower()) for value in groups) != 1:
+        raise ValueError("Alert notification routing differs from the reviewed handover.")
+    body["properties"]["actionGroups"]["groupIds"] = [
+        NEW if value.lower() == OLD.lower() else value for value in groups
+    ]
+    return body
+
+
+def main():
+    if os.environ.get("GITHUB_REF") != "refs/heads/main":
+        raise ValueError("Handover is allowed only from reviewed main.")
+    validate_group(azure("get", OLD, "2023-01-01"), OLD)
+    validate_group(azure("get", NEW, "2023-01-01"), NEW)
+    allowed = {identifier.lower() for identifier in RULES}
+    if references() - allowed:
+        raise ValueError("Unknown or not-yet-retired alerts still depend on the old action group.")
+    planned = []
+    for identifier, scope in RULES.items():
+        before = azure("get", identifier, "2021-04-01")
+        planned.append((identifier, scope, before, replacement(before, identifier, scope)))
+    for identifier, scope, before, desired in planned:
+        current = azure("get", identifier, "2021-04-01")
+        if current != before:
+            raise ValueError("Alert changed during preflight; stop rather than overwrite it.")
+        current_body = {"location": current["location"], "tags": current.get("tags") or {},
+                        "properties": current["properties"]}
+        if current_body != desired:
+            azure("put", identifier, "2021-04-01", desired)
+        after = azure("get", identifier, "2021-04-01")
+        after_body = {"location": after["location"], "tags": after.get("tags") or {},
+                      "properties": after["properties"]}
+        if after_body != desired or replacement(after, identifier, scope) != desired:
+            raise ValueError("Alert configuration did not verify unchanged apart from its group ID.")
+    for attempt in range(19):
+        if not references():
+            print("Verified three unchanged alert definitions and notification roles; no old references remain.")
+            print("The old action group was retained for separately reviewed Travel cleanup.")
+            return
+        if attempt < 18:
+            time.sleep(10)
+    raise ValueError("Reference index has not cleared; keep the old group and retry safely.")
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except (ValueError, RuntimeError, KeyError, TypeError):
+        raise SystemExit("Notification handover stopped; preserve the old group and review before retrying.") from None

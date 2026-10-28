@@ -1,0 +1,86 @@
+name: Shared Smart Detection Handover
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - "terraform/**"
+      - ".github/scripts/*smart_detection_handover.py"
+      - ".github/workflows/smart-detection-handover.yml"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  guard-tests:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - run: python3 -m unittest discover -s .github/scripts -p test_smart_detection_handover.py -v
+
+  plan:
+    if: github.event_name == 'pull_request' && github.event.pull_request.draft == false && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    environment: Production
+    concurrency:
+      group: ${{ github.repository }}-prd
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: azure/login@a641126d1b8aa4d1fa005f4f92df94a3a4c4c906
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      - name: Audit existing recipients and complete reference inventory without changes
+        shell: python
+        run: |
+          import sys
+          sys.path.insert(0, ".github/scripts")
+          import smart_detection_handover as handover
+          handover.validate_group(handover.azure("get", handover.OLD, "2023-01-01"), handover.OLD)
+          print("Verified original two-role notification configuration; references:", len(handover.references()))
+      - uses: frasermolyneux/actions/terraform-setup@terraform-setup/v1.0.0
+        with:
+          terraform-folder: terraform
+          terraform_wrapper: "false"
+      - name: Review the complete Production monitoring plan without a sensitive artifact
+        env:
+          ARM_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
+          ARM_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+          ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+          ARM_USE_AZUREAD: "true"
+          ARM_USE_OIDC: "true"
+        run: |
+          set -euo pipefail
+          terraform -chdir=terraform init -input=false -lockfile=readonly \
+            -backend-config=backends/prd.backend.hcl
+          terraform -chdir=terraform validate
+          terraform -chdir=terraform plan -input=false -no-color -var-file=tfvars/prd.tfvars
+
+  handover:
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    environment: Production
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    concurrency:
+      group: ${{ github.repository }}-prd
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: azure/login@a641126d1b8aa4d1fa005f4f92df94a3a4c4c906
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      - name: Preserve recipients and alert definitions while rebinding only the shared group
+        run: python3 .github/scripts/smart_detection_handover.py

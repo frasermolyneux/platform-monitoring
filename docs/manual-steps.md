@@ -8,3 +8,27 @@ manual secret-management operation.
 Do not add workload application secrets to this Key Vault. Runtime secrets such
 as Invision task keys belong in the workload runtime Key Vault managed by
 `platform-baremetal`.
+
+## Shared Smart Detection handover
+
+The shared subscription's auto-created Smart Detection group was located in
+Travel Itinerary's resource group but is also used by surviving workloads.
+Never delete that group while any reference remains.
+
+The production-only `shared_smart_detection` resources provide a protected
+replacement in the **same subscription**, preserving the original enabled state,
+short name, Monitoring Contributor/Reader receivers and common-alert-schema
+settings. No contact secrets, new notification destinations or telemetry are added.
+
+Review the complete Production plan and apply the core stack first. After Trip
+and Talk's legacy alerts are retired, dispatch **Shared Smart Detection Handover**
+on reviewed main. It rejects incomplete/unknown references and recipient drift,
+updates only CraftPledge, Geo Location and Platform Notifications group IDs,
+and verifies every other alert property unchanged. Retries preserve completed
+updates and the old group. Full rule bodies are retained because the documented
+2021-04-01 resource contract uses complete resource updates; do not make concurrent
+manual changes to these three rules during the bounded handover.
+
+Only after all references clear may Travel's separately reviewed cleanup remove
+the old group and complete its empty-resource-group assertion. Workload alert
+definitions and instrumentation remain with their existing owners.
