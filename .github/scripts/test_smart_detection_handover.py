@@ -1,5 +1,7 @@
 import copy
 import os
+import subprocess
+import sys
 import unittest
 from unittest import mock
 
@@ -55,6 +57,8 @@ class HandoverTests(unittest.TestCase):
                     "count": len(identifiers),
                     "totalRecords": len(identifiers) + int(self.incomplete)}
         if method == "get":
+            if path.endswith("/providers/Microsoft.Insights/actionGroups"):
+                return {"value": copy.deepcopy(list(self.groups.values()))}
             if path.endswith("/resources"):
                 resources = [{"id": handover.OLD}] if handover.OLD in self.groups else []
                 if self.unexpected_resource:
@@ -178,6 +182,41 @@ class HandoverTests(unittest.TestCase):
                     self.assertEqual(self.deletes, [])
                 finally:
                     setattr(self, attribute, original)
+
+    def test_audit_survives_complete_retirement_but_requires_verified_routes(self):
+        handover.audit()
+        del self.groups[handover.OLD]
+        with self.assertRaises(handover.GuardFailure):
+            handover.audit()
+        for identifier, rule in self.rules.items():
+            self.rules[identifier] = {
+                **rule, **handover.replacement(rule, identifier, handover.RULES[identifier])
+            }
+        handover.audit()
+        self.assertEqual(self.writes, [])
+        self.assertEqual(self.deletes, [])
+        self.unknown = {"/unexpected/reference"}
+        with self.assertRaises(handover.GuardFailure):
+            handover.audit()
+
+    def test_audit_rejects_incomplete_listing_and_receiver_drift(self):
+        with mock.patch.object(handover, "azure", return_value={"value": [], "nextLink": "/more"}):
+            with self.assertRaises(handover.GuardFailure):
+                handover.audit()
+        handover.main()
+        del self.groups[handover.OLD]
+        self.groups[handover.NEW]["properties"]["armRoleReceivers"][0]["useCommonAlertSchema"] = False
+        with self.assertRaises(handover.GuardFailure):
+            handover.audit()
+
+    def test_entrypoint_preserves_authored_guard_reason_without_a_traceback(self):
+        result = subprocess.run(
+            [sys.executable, handover.__file__, "--unsupported"],
+            text=True, capture_output=True, check=False,
+        )
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("Unsupported operation.", result.stderr)
+        self.assertNotIn("Traceback", result.stderr)
 
 
 if __name__ == "__main__":

@@ -32,6 +32,10 @@ RULES = {
 }
 
 
+class GuardFailure(ValueError):
+    """An authored, non-sensitive prerequisite message that may be logged."""
+
+
 def azure(method, path, version, body=None):
     arguments = [
         "az", "rest", "--method", method,
@@ -58,7 +62,7 @@ def references():
     rows = response["data"]
     if (response.get("$skipToken") or response["totalRecords"] != len(rows)
             or response["count"] != len(rows)):
-        raise ValueError("Reference inventory is incomplete.")
+        raise GuardFailure("Reference inventory is incomplete.")
     return {row["id"].lower() for row in rows}
 
 
@@ -73,7 +77,7 @@ def validate_group(group, identifier):
             != sorted(ROLES, key=lambda entry: entry["roleId"])
             or any(value for key, value in properties.items()
                    if key.endswith("Receivers") and key != "armRoleReceivers")):
-        raise ValueError("Notification configuration differs from the reviewed two-role contract.")
+        raise GuardFailure("Notification configuration differs from the reviewed two-role contract.")
 
 
 def replacement(rule, identifier, scope):
@@ -82,26 +86,52 @@ def replacement(rule, identifier, scope):
             or rule["type"].lower() != "microsoft.alertsmanagement/smartdetectoralertrules"
             or [value.lower() for value in properties.get("scope", [])] != [scope.lower()]
             or properties.get("detector", {}).get("id") != "FailureAnomaliesDetector"):
-        raise ValueError("Alert identity or instrumentation scope differs from the reviewed contract.")
+        raise GuardFailure("Alert identity or instrumentation scope differs from the reviewed contract.")
     body = {"location": rule["location"], "tags": rule.get("tags") or {},
             "properties": copy.deepcopy(properties)}
     groups = body["properties"]["actionGroups"]["groupIds"]
     if sum(value.lower() in (OLD.lower(), NEW.lower()) for value in groups) != 1:
-        raise ValueError("Alert notification routing differs from the reviewed handover.")
+        raise GuardFailure("Alert notification routing differs from the reviewed handover.")
     body["properties"]["actionGroups"]["groupIds"] = [
         NEW if value.lower() == OLD.lower() else value for value in groups
     ]
     return body
 
 
+def verify_new_routes():
+    validate_group(azure("get", NEW, "2023-01-01"), NEW)
+    for identifier, scope in RULES.items():
+        rule = azure("get", identifier, "2021-04-01")
+        body = {"location": rule["location"], "tags": rule.get("tags") or {},
+                "properties": rule["properties"]}
+        if replacement(rule, identifier, scope) != body:
+            raise GuardFailure("A surviving alert still depends on the old group.")
+
+
+def audit():
+    groups = azure("get", f"/subscriptions/{SUBSCRIPTION}/providers/Microsoft.Insights/actionGroups",
+                   "2023-01-01")
+    if groups.get("nextLink"):
+        raise GuardFailure("Action group inventory is incomplete.")
+    old = [group for group in groups["value"] if group["id"].lower() == OLD.lower()]
+    if old:
+        validate_group(old[0], OLD)
+        print("Verified original two-role notification configuration; references:", len(references()))
+    else:
+        verify_new_routes()
+        if references():
+            raise GuardFailure("The retired group is absent but references still remain.")
+        print("Verified retired group absent, replacement recipients and all three surviving routes.")
+
+
 def main():
     if os.environ.get("GITHUB_REF") != "refs/heads/main":
-        raise ValueError("Handover is allowed only from reviewed main.")
+        raise GuardFailure("Handover is allowed only from reviewed main.")
     validate_group(azure("get", OLD, "2023-01-01"), OLD)
     validate_group(azure("get", NEW, "2023-01-01"), NEW)
     allowed = {identifier.lower() for identifier in RULES}
     if references() - allowed:
-        raise ValueError("Unknown or not-yet-retired alerts still depend on the old action group.")
+        raise GuardFailure("Unknown or not-yet-retired alerts still depend on the old action group.")
     planned = []
     for identifier, scope in RULES.items():
         before = azure("get", identifier, "2021-04-01")
@@ -109,7 +139,7 @@ def main():
     for identifier, scope, before, desired in planned:
         current = azure("get", identifier, "2021-04-01")
         if current != before:
-            raise ValueError("Alert changed during preflight; stop rather than overwrite it.")
+            raise GuardFailure("Alert changed during preflight; stop rather than overwrite it.")
         current_body = {"location": current["location"], "tags": current.get("tags") or {},
                         "properties": current["properties"]}
         if current_body != desired:
@@ -118,7 +148,7 @@ def main():
         after_body = {"location": after["location"], "tags": after.get("tags") or {},
                       "properties": after["properties"]}
         if after_body != desired or replacement(after, identifier, scope) != desired:
-            raise ValueError("Alert configuration did not verify unchanged apart from its group ID.")
+            raise GuardFailure("Alert configuration did not verify unchanged apart from its group ID.")
     for attempt in range(19):
         if not references():
             print("Verified three unchanged alert definitions and notification roles; no old references remain.")
@@ -126,30 +156,24 @@ def main():
             return
         if attempt < 18:
             time.sleep(10)
-    raise ValueError("Reference index has not cleared; keep the old group and retry safely.")
+    raise GuardFailure("Reference index has not cleared; keep the old group and retry safely.")
 
 
 def retire_old_group():
     if os.environ.get("GITHUB_REF") != "refs/heads/main":
-        raise ValueError("Cleanup is allowed only from reviewed main.")
-    validate_group(azure("get", NEW, "2023-01-01"), NEW)
-    for identifier, scope in RULES.items():
-        rule = azure("get", identifier, "2021-04-01")
-        body = {"location": rule["location"], "tags": rule.get("tags") or {},
-                "properties": rule["properties"]}
-        if replacement(rule, identifier, scope) != body:
-            raise ValueError("A surviving alert still depends on the old group.")
+        raise GuardFailure("Cleanup is allowed only from reviewed main.")
+    verify_new_routes()
     if references():
-        raise ValueError("The complete subscription inventory still references the old group.")
+        raise GuardFailure("The complete subscription inventory still references the old group.")
     path = BASE + "rg-travel-itinerary-prd-swedencentral/resources"
     inventory = azure("get", path, "2021-04-01")
     resources = inventory["value"]
     if inventory.get("nextLink") or any(resource["id"].lower() != OLD.lower() for resource in resources):
-        raise ValueError("Travel inventory contains unexpected resources; stop for review.")
+        raise GuardFailure("Travel inventory contains unexpected resources; stop for review.")
     if resources:
         validate_group(azure("get", OLD, "2023-01-01"), OLD)
         if references():
-            raise ValueError("Old group references appeared during cleanup preflight.")
+            raise GuardFailure("Old group references appeared during cleanup preflight.")
         azure("delete", OLD, "2023-01-01")
     for attempt in range(19):
         inventory = azure("get", path, "2021-04-01")
@@ -158,7 +182,7 @@ def retire_old_group():
             return
         if attempt < 18:
             time.sleep(10)
-    raise ValueError("Travel inventory is not empty; do not decommission its catalog.")
+    raise GuardFailure("Travel inventory is not empty; do not decommission its catalog.")
 
 
 if __name__ == "__main__":
@@ -168,6 +192,8 @@ if __name__ == "__main__":
         elif not sys.argv[1:]:
             main()
         else:
-            raise ValueError("Unsupported operation.")
+            raise GuardFailure("Unsupported operation.")
+    except GuardFailure as error:
+        raise SystemExit(str(error)) from None
     except (ValueError, RuntimeError, KeyError, TypeError):
         raise SystemExit("Notification handover stopped; preserve the old group and review before retrying.") from None

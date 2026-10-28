@@ -36,3 +36,9 @@ contract, zero references and the exact otherwise-empty Travel inventory before
 deleting only the old group. Travel's existing guarded destroy can then retry its
 empty-resource-group assertion before catalog decommissioning. Workload alert
 definitions and instrumentation remain with their existing owners.
+
+The read-only PR audit handles both migration states. Once the old group is
+absent, it validates the replacement recipients, all three surviving routes and
+zero old references without reading Travel's retired resource group. Authored
+guard failures identify the failed prerequisite; raw Azure diagnostics and
+unexpected response content remain suppressed.

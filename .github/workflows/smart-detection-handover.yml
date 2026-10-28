@@ -45,8 +45,7 @@ jobs:
           import sys
           sys.path.insert(0, ".github/scripts")
           import smart_detection_handover as handover
-          handover.validate_group(handover.azure("get", handover.OLD, "2023-01-01"), handover.OLD)
-          print("Verified original two-role notification configuration; references:", len(handover.references()))
+          handover.audit()
       - uses: frasermolyneux/actions/terraform-setup@terraform-setup/v1.0.0
         with:
           terraform-folder: terraform
