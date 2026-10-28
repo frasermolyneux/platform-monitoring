@@ -36,6 +36,8 @@ class HandoverTests(unittest.TestCase):
             for identifier, scope in handover.RULES.items()
         }
         self.unknown = set()
+        self.live_unknown = set()
+        self.live_incomplete = False
         self.writes = []
         self.deletes = []
         self.unexpected_resource = False
@@ -57,8 +59,17 @@ class HandoverTests(unittest.TestCase):
                     "count": len(identifiers),
                     "totalRecords": len(identifiers) + int(self.incomplete)}
         if method == "get":
-            if path.endswith("/providers/Microsoft.Insights/actionGroups"):
-                return {"value": copy.deepcopy(list(self.groups.values()))}
+            if "/providers/" in path and path not in self.groups and path not in self.rules:
+                if path.endswith("/providers/Microsoft.Insights/actionGroups"):
+                    return {"value": copy.deepcopy(list(self.groups.values()))}
+                if path.endswith("/smartDetectorAlertRules"):
+                    resources = list(self.rules.values()) + [
+                        {"id": identifier, "properties": {"actionGroups": {"groupIds": [handover.OLD]}}}
+                        for identifier in self.live_unknown
+                    ]
+                    return {"value": copy.deepcopy(resources),
+                            "nextLink": "/more" if self.live_incomplete else None}
+                return {"value": []}
             if path.endswith("/resources"):
                 resources = [{"id": handover.OLD}] if handover.OLD in self.groups else []
                 if self.unexpected_resource:
@@ -217,6 +228,22 @@ class HandoverTests(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("Unsupported operation.", result.stderr)
         self.assertNotIn("Traceback", result.stderr)
+
+    def test_graph_false_negative_cannot_authorize_deletion_of_a_live_reference(self):
+        handover.main()
+        self.live_unknown = {"/recent/unindexed/alert"}
+        with mock.patch.object(handover, "references", return_value=set()):
+            with self.assertRaises(handover.GuardFailure):
+                handover.retire_old_group()
+        self.assertEqual(self.deletes, [])
+        self.assertIn(handover.OLD, self.groups)
+
+    def test_incomplete_live_inventory_blocks_handover_before_any_writes(self):
+        self.live_incomplete = True
+        with self.assertRaises(handover.GuardFailure):
+            handover.main()
+        self.assertEqual(self.writes, [])
+        self.assertEqual(self.deletes, [])
 
 
 if __name__ == "__main__":

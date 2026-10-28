@@ -66,6 +66,26 @@ def references():
     return {row["id"].lower() for row in rows}
 
 
+def live_references():
+    found = set()
+    for provider, version in (
+        ("Microsoft.AlertsManagement/smartDetectorAlertRules", "2021-04-01"),
+        ("Microsoft.Insights/metricAlerts", "2018-03-01"),
+        ("Microsoft.Insights/scheduledQueryRules", "2023-12-01"),
+        ("Microsoft.Insights/activityLogAlerts", "2020-10-01"),
+        ("Microsoft.AlertsManagement/actionRules", "2021-08-08"),
+        ("Microsoft.AlertsManagement/prometheusRuleGroups", "2023-03-01"),
+        ("Microsoft.Consumption/budgets", "2024-08-01"),
+    ):
+        response = azure("get", f"/subscriptions/{SUBSCRIPTION}/providers/{provider}", version)
+        if response.get("nextLink"):
+            raise GuardFailure("Live notification reference inventory is incomplete.")
+        for resource in response["value"]:
+            if OLD.lower() in json.dumps(resource["properties"]).lower():
+                found.add(resource["id"].lower())
+    return found
+
+
 def validate_group(group, identifier):
     properties = group["properties"]
     if (group["id"].lower() != identifier.lower()
@@ -116,10 +136,11 @@ def audit():
     old = [group for group in groups["value"] if group["id"].lower() == OLD.lower()]
     if old:
         validate_group(old[0], OLD)
-        print("Verified original two-role notification configuration; references:", len(references()))
+        print("Verified original two-role notification configuration; references:",
+              len(references() | live_references()))
     else:
         verify_new_routes()
-        if references():
+        if references() or live_references():
             raise GuardFailure("The retired group is absent but references still remain.")
         print("Verified retired group absent, replacement recipients and all three surviving routes.")
 
@@ -130,7 +151,7 @@ def main():
     validate_group(azure("get", OLD, "2023-01-01"), OLD)
     validate_group(azure("get", NEW, "2023-01-01"), NEW)
     allowed = {identifier.lower() for identifier in RULES}
-    if references() - allowed:
+    if (references() | live_references()) - allowed:
         raise GuardFailure("Unknown or not-yet-retired alerts still depend on the old action group.")
     planned = []
     for identifier, scope in RULES.items():
@@ -149,6 +170,8 @@ def main():
                       "properties": after["properties"]}
         if after_body != desired or replacement(after, identifier, scope) != desired:
             raise GuardFailure("Alert configuration did not verify unchanged apart from its group ID.")
+    if live_references():
+        raise GuardFailure("Live notification references remain; keep the old group.")
     for attempt in range(19):
         if not references():
             print("Verified three unchanged alert definitions and notification roles; no old references remain.")
@@ -163,7 +186,7 @@ def retire_old_group():
     if os.environ.get("GITHUB_REF") != "refs/heads/main":
         raise GuardFailure("Cleanup is allowed only from reviewed main.")
     verify_new_routes()
-    if references():
+    if references() or live_references():
         raise GuardFailure("The complete subscription inventory still references the old group.")
     path = BASE + "rg-travel-itinerary-prd-swedencentral/resources"
     inventory = azure("get", path, "2021-04-01")
@@ -172,7 +195,7 @@ def retire_old_group():
         raise GuardFailure("Travel inventory contains unexpected resources; stop for review.")
     if resources:
         validate_group(azure("get", OLD, "2023-01-01"), OLD)
-        if references():
+        if references() or live_references():
             raise GuardFailure("Old group references appeared during cleanup preflight.")
         azure("delete", OLD, "2023-01-01")
     for attempt in range(19):

@@ -27,7 +27,8 @@ updates only CraftPledge, Geo Location and Platform Notifications group IDs,
 and verifies every other alert property unchanged. Retries preserve completed
 updates and the old group. Full rule bodies are retained because the documented
 2021-04-01 resource contract uses complete resource updates; do not make concurrent
-manual changes to these three rules during the bounded handover.
+changes to shared-subscription notification routing during the bounded handover
+and retirement window. Cross-resource Azure updates are not atomic.
 
 Only after all references clear, explicitly dispatch **Retire Unreferenced Travel
 Monitoring Group**. This separate operation uses the monitoring identity's complete
@@ -42,3 +43,9 @@ absent, it validates the replacement recipients, all three surviving routes and
 zero old references without reading Travel's retired resource group. Authored
 guard failures identify the failed prerequisite; raw Azure diagnostics and
 unexpected response content remain suppressed.
+
+Resource Graph is discovery evidence, not the sole deletion gate. Direct ARM
+subscription listings additionally inspect Smart Detection, metric, scheduled
+query and activity-log alerts, alert processing rules, Prometheus rule groups
+and consumption budgets. Both incomplete pages and live references block
+retirement, including when Resource Graph has not indexed a recent change.
