@@ -29,6 +29,10 @@ updates and the old group. Full rule bodies are retained because the documented
 2021-04-01 resource contract uses complete resource updates; do not make concurrent
 manual changes to these three rules during the bounded handover.
 
-Only after all references clear may Travel's separately reviewed cleanup remove
-the old group and complete its empty-resource-group assertion. Workload alert
+Only after all references clear, explicitly dispatch **Retire Unreferenced Travel
+Monitoring Group**. This separate operation uses the monitoring identity's complete
+subscription visibility, rechecks all surviving routes, the replacement receiver
+contract, zero references and the exact otherwise-empty Travel inventory before
+deleting only the old group. Travel's existing guarded destroy can then retry its
+empty-resource-group assertion before catalog decommissioning. Workload alert
 definitions and instrumentation remain with their existing owners.

@@ -35,6 +35,8 @@ class HandoverTests(unittest.TestCase):
         }
         self.unknown = set()
         self.writes = []
+        self.deletes = []
+        self.unexpected_resource = False
         self.fail_write = None
         self.incomplete = False
         api = mock.patch.object(handover, "azure", side_effect=self.azure)
@@ -53,7 +55,16 @@ class HandoverTests(unittest.TestCase):
                     "count": len(identifiers),
                     "totalRecords": len(identifiers) + int(self.incomplete)}
         if method == "get":
+            if path.endswith("/resources"):
+                resources = [{"id": handover.OLD}] if handover.OLD in self.groups else []
+                if self.unexpected_resource:
+                    resources.append({"id": "/unexpected/resource"})
+                return {"value": resources}
             return copy.deepcopy(self.groups[path] if path in self.groups else self.rules[path])
+        if method == "delete" and path == handover.OLD:
+            self.deletes.append(path)
+            del self.groups[path]
+            return None
         if method == "put" and path in self.rules:
             if self.fail_write == path:
                 self.fail_write = None
@@ -143,6 +154,30 @@ class HandoverTests(unittest.TestCase):
         sleep.assert_called_once_with(10)
         self.assertEqual(len(self.writes), 3)
         self.assertIn(handover.OLD, self.groups)
+
+    def test_cleanup_rejects_live_routing_and_then_only_deletes_old_group(self):
+        with self.assertRaises(ValueError):
+            handover.retire_old_group()
+        self.assertEqual(self.deletes, [])
+        handover.main()
+        handover.retire_old_group()
+        handover.retire_old_group()
+        self.assertEqual(self.deletes, [handover.OLD])
+        self.assertIn(handover.NEW, self.groups)
+        self.assertEqual(len(self.rules), 3)
+
+    def test_cleanup_rejects_unknown_references_and_unexpected_resources(self):
+        handover.main()
+        for attribute, value in (("unknown", {"/unexpected/reference"}), ("unexpected_resource", True)):
+            original = getattr(self, attribute)
+            with self.subTest(attribute=attribute):
+                setattr(self, attribute, value)
+                try:
+                    with self.assertRaises(ValueError):
+                        handover.retire_old_group()
+                    self.assertEqual(self.deletes, [])
+                finally:
+                    setattr(self, attribute, original)
 
 
 if __name__ == "__main__":

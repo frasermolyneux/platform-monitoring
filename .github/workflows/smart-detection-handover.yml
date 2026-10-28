@@ -7,6 +7,7 @@ on:
       - "terraform/**"
       - ".github/scripts/*smart_detection_handover.py"
       - ".github/workflows/smart-detection-handover.yml"
+      - ".github/workflows/retire-travel-monitoring.yml"
   workflow_dispatch:
 
 permissions: {}

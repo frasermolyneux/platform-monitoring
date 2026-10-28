@@ -4,6 +4,7 @@ import copy
 import json
 import os
 import subprocess
+import sys
 import time
 from urllib.parse import quote
 
@@ -42,7 +43,7 @@ def azure(method, path, version, body=None):
     result = subprocess.run(arguments, text=True, capture_output=True, check=False)
     if result.returncode:
         raise RuntimeError("Azure operation failed; diagnostic output withheld.")
-    return json.loads(result.stdout)
+    return json.loads(result.stdout) if result.stdout.strip() else None
 
 
 def references():
@@ -128,8 +129,45 @@ def main():
     raise ValueError("Reference index has not cleared; keep the old group and retry safely.")
 
 
+def retire_old_group():
+    if os.environ.get("GITHUB_REF") != "refs/heads/main":
+        raise ValueError("Cleanup is allowed only from reviewed main.")
+    validate_group(azure("get", NEW, "2023-01-01"), NEW)
+    for identifier, scope in RULES.items():
+        rule = azure("get", identifier, "2021-04-01")
+        body = {"location": rule["location"], "tags": rule.get("tags") or {},
+                "properties": rule["properties"]}
+        if replacement(rule, identifier, scope) != body:
+            raise ValueError("A surviving alert still depends on the old group.")
+    if references():
+        raise ValueError("The complete subscription inventory still references the old group.")
+    path = BASE + "rg-travel-itinerary-prd-swedencentral/resources"
+    inventory = azure("get", path, "2021-04-01")
+    resources = inventory["value"]
+    if inventory.get("nextLink") or any(resource["id"].lower() != OLD.lower() for resource in resources):
+        raise ValueError("Travel inventory contains unexpected resources; stop for review.")
+    if resources:
+        validate_group(azure("get", OLD, "2023-01-01"), OLD)
+        if references():
+            raise ValueError("Old group references appeared during cleanup preflight.")
+        azure("delete", OLD, "2023-01-01")
+    for attempt in range(19):
+        inventory = azure("get", path, "2021-04-01")
+        if not inventory.get("nextLink") and not inventory["value"]:
+            print("Retired only the unreferenced old group; Travel resource group is empty.")
+            return
+        if attempt < 18:
+            time.sleep(10)
+    raise ValueError("Travel inventory is not empty; do not decommission its catalog.")
+
+
 if __name__ == "__main__":
     try:
-        main()
+        if sys.argv[1:] == ["--retire-old-group"]:
+            retire_old_group()
+        elif not sys.argv[1:]:
+            main()
+        else:
+            raise ValueError("Unsupported operation.")
     except (ValueError, RuntimeError, KeyError, TypeError):
         raise SystemExit("Notification handover stopped; preserve the old group and review before retrying.") from None
