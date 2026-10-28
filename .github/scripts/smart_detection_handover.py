@@ -100,6 +100,20 @@ def validate_group(group, identifier):
         raise GuardFailure("Notification configuration differs from the reviewed two-role contract.")
 
 
+def rule_body(rule):
+    body = {"location": rule["location"], "tags": rule.get("tags") or {},
+            "properties": copy.deepcopy(rule["properties"])}
+    detector = body["properties"]["detector"]
+    metadata = {"name", "description", "parameterDefinitions",
+                "supportedCadences", "supportedResourceTypes"}
+    if set(detector) - metadata - {"id", "parameters"}:
+        raise GuardFailure("Unknown detector fields require review before notification changes.")
+    # GET enriches read-only detector metadata after PUT; compare only writable configuration.
+    for key in metadata:
+        detector.pop(key, None)
+    return body
+
+
 def replacement(rule, identifier, scope):
     properties = rule["properties"]
     if (rule["id"].lower() != identifier.lower()
@@ -107,8 +121,7 @@ def replacement(rule, identifier, scope):
             or [value.lower() for value in properties.get("scope", [])] != [scope.lower()]
             or properties.get("detector", {}).get("id") != "FailureAnomaliesDetector"):
         raise GuardFailure("Alert identity or instrumentation scope differs from the reviewed contract.")
-    body = {"location": rule["location"], "tags": rule.get("tags") or {},
-            "properties": copy.deepcopy(properties)}
+    body = rule_body(rule)
     groups = body["properties"]["actionGroups"]["groupIds"]
     if sum(value.lower() in (OLD.lower(), NEW.lower()) for value in groups) != 1:
         raise GuardFailure("Alert notification routing differs from the reviewed handover.")
@@ -122,8 +135,7 @@ def verify_new_routes():
     validate_group(azure("get", NEW, "2023-01-01"), NEW)
     for identifier, scope in RULES.items():
         rule = azure("get", identifier, "2021-04-01")
-        body = {"location": rule["location"], "tags": rule.get("tags") or {},
-                "properties": rule["properties"]}
+        body = rule_body(rule)
         if replacement(rule, identifier, scope) != body:
             raise GuardFailure("A surviving alert still depends on the old group.")
 
@@ -161,13 +173,11 @@ def main():
         current = azure("get", identifier, "2021-04-01")
         if current != before:
             raise GuardFailure("Alert changed during preflight; stop rather than overwrite it.")
-        current_body = {"location": current["location"], "tags": current.get("tags") or {},
-                        "properties": current["properties"]}
+        current_body = rule_body(current)
         if current_body != desired:
             azure("put", identifier, "2021-04-01", desired)
         after = azure("get", identifier, "2021-04-01")
-        after_body = {"location": after["location"], "tags": after.get("tags") or {},
-                      "properties": after["properties"]}
+        after_body = rule_body(after)
         if after_body != desired or replacement(after, identifier, scope) != desired:
             raise GuardFailure("Alert configuration did not verify unchanged apart from its group ID.")
     if live_references():
