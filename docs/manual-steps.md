@@ -49,3 +49,11 @@ subscription listings additionally inspect Smart Detection, metric, scheduled
 query and activity-log alerts, alert processing rules, Prometheus rule groups
 and consumption budgets. Both incomplete pages and live references block
 retirement, including when Resource Graph has not indexed a recent change.
+
+The [2021-04-01 detector configuration](https://learn.microsoft.com/en-us/azure/templates/microsoft.alertsmanagement/2021-04-01/smartdetectoralertrules#detector)
+contains writable `id` and `parameters`. GET additionally returns service-owned
+detector metadata and can add an empty `parameterDefinitions` after PUT. The
+handover excludes only those known read-only metadata fields from requests and
+configuration comparison. All writable fields, including disabled state, custom
+payloads, throttling and detector parameters, still verify exactly; unknown
+detector fields stop for review.

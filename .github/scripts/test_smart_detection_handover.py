@@ -245,6 +245,43 @@ class HandoverTests(unittest.TestCase):
         self.assertEqual(self.writes, [])
         self.assertEqual(self.deletes, [])
 
+    def test_api_metadata_enrichment_is_not_submitted_or_treated_as_configuration_drift(self):
+        third = list(self.rules)[2]
+        self.rules[third]["properties"]["state"] = "Disabled"
+
+        def enriching(method, path, version, body=None):
+            if method == "put":
+                self.assertEqual(set(body["properties"]["detector"]), {"id", "parameters"})
+            result = self.azure(method, path, version, body)
+            if method == "put":
+                self.rules[path]["properties"]["detector"].update({
+                    "name": "Failure Anomalies", "description": "service-owned metadata",
+                    "parameterDefinitions": [], "supportedCadences": [60],
+                    "supportedResourceTypes": ["microsoft.insights/components"],
+                })
+            return result
+
+        self.api.side_effect = enriching
+        handover.main()
+        handover.main()
+        self.assertEqual(len(self.writes), 3)
+        self.assertEqual(self.rules[third]["properties"]["state"], "Disabled")
+        self.assertIn(handover.OLD, self.groups)
+
+    def test_writable_detector_parameter_drift_still_fails_verification(self):
+        def changing(method, path, version, body=None):
+            result = self.azure(method, path, version, body)
+            if method == "put":
+                self.rules[path]["properties"]["detector"]["parameters"] = {"unexpected": True}
+            return result
+
+        self.api.side_effect = changing
+        with self.assertRaises(handover.GuardFailure):
+            handover.main()
+        self.assertEqual(len(self.writes), 1)
+        self.assertEqual(self.deletes, [])
+        self.assertIn(handover.OLD, self.groups)
+
 
 if __name__ == "__main__":
     unittest.main()
