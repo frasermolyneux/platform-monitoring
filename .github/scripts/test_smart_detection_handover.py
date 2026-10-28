@@ -282,6 +282,40 @@ class HandoverTests(unittest.TestCase):
         self.assertEqual(self.deletes, [])
         self.assertIn(handover.OLD, self.groups)
 
+    def test_api_arm_identity_casing_is_accepted_without_rewriting_other_configuration(self):
+        def canonicalizing(method, path, version, body=None):
+            result = self.azure(method, path, version, body)
+            if method == "put":
+                rule = self.rules[path]
+                rule["location"] = rule["location"].upper()
+                rule["properties"]["scope"] = [
+                    value.lower() for value in rule["properties"]["scope"]
+                ]
+                groups = rule["properties"]["actionGroups"]
+                groups["groupIds"] = [value.lower() for value in groups["groupIds"]]
+            return result
+
+        self.api.side_effect = canonicalizing
+        handover.main()
+        handover.main()
+        self.assertEqual(len(self.writes), 3)
+        self.assertIn(handover.OLD, self.groups)
+
+    def test_notification_subject_case_drift_is_not_ignored(self):
+        def changing(method, path, version, body=None):
+            result = self.azure(method, path, version, body)
+            if method == "put":
+                groups = self.rules[path]["properties"]["actionGroups"]
+                groups["customEmailSubject"] = groups["customEmailSubject"].upper()
+            return result
+
+        self.api.side_effect = changing
+        with self.assertRaises(handover.GuardFailure):
+            handover.main()
+        self.assertEqual(len(self.writes), 1)
+        self.assertEqual(self.deletes, [])
+        self.assertIn(handover.OLD, self.groups)
+
 
 if __name__ == "__main__":
     unittest.main()

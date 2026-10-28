@@ -131,12 +131,26 @@ def replacement(rule, identifier, scope):
     return body
 
 
+def same_configuration(first, second):
+    bodies = []
+    for source in (first, second):
+        body = copy.deepcopy(source)
+        body["location"] = body["location"].lower()
+        properties = body["properties"]
+        properties["scope"] = [value.lower() for value in properties["scope"]]
+        properties["actionGroups"]["groupIds"] = [
+            value.lower() for value in properties["actionGroups"]["groupIds"]
+        ]
+        bodies.append(body)
+    return bodies[0] == bodies[1]
+
+
 def verify_new_routes():
     validate_group(azure("get", NEW, "2023-01-01"), NEW)
     for identifier, scope in RULES.items():
         rule = azure("get", identifier, "2021-04-01")
         body = rule_body(rule)
-        if replacement(rule, identifier, scope) != body:
+        if not same_configuration(replacement(rule, identifier, scope), body):
             raise GuardFailure("A surviving alert still depends on the old group.")
 
 
@@ -174,11 +188,12 @@ def main():
         if current != before:
             raise GuardFailure("Alert changed during preflight; stop rather than overwrite it.")
         current_body = rule_body(current)
-        if current_body != desired:
+        if not same_configuration(current_body, desired):
             azure("put", identifier, "2021-04-01", desired)
         after = azure("get", identifier, "2021-04-01")
         after_body = rule_body(after)
-        if after_body != desired or replacement(after, identifier, scope) != desired:
+        if (not same_configuration(after_body, desired)
+                or not same_configuration(replacement(after, identifier, scope), desired)):
             raise GuardFailure("Alert configuration did not verify unchanged apart from its group ID.")
     if live_references():
         raise GuardFailure("Live notification references remain; keep the old group.")
