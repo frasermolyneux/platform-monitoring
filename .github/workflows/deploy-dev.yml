@@ -15,11 +15,12 @@ jobs:
     concurrency:
       group: ${{ github.repository }}-dev
     steps:
-      - uses: frasermolyneux/actions/terraform-plan-and-apply@terraform-plan-and-apply/v2.0.1
+      - uses: frasermolyneux/actions/terraform-plan-and-apply@027d7e31bb32b734090aaed01b36d74f1d658b61 # terraform-plan-and-apply/v5.0.0
         with:
           terraform-folder: "terraform"
           terraform-var-file: "tfvars/dev.tfvars"
           terraform-backend-file: "backends/dev.backend.hcl"
+          plan-artifact-name: terraform-core-dev
           AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
           AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
           AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
@@ -52,13 +53,17 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
 
-      - uses: frasermolyneux/actions/terraform-plan-and-apply@terraform-plan-and-apply/v2.0.1
+      - uses: frasermolyneux/actions/terraform-plan-and-apply@027d7e31bb32b734090aaed01b36d74f1d658b61 # terraform-plan-and-apply/v5.0.0
+        env:
+          TF_VAR_subscription_name: ${{ matrix.subscription.name }}
+          TF_VAR_subscription_id: ${{ matrix.subscription.subscription_id }}
+          TF_VAR_monthly_budget: ${{ matrix.subscription.monthly_budget }}
         with:
           terraform-folder: "terraform-sub"
           terraform-var-file: "tfvars/dev.tfvars"
           terraform-backend-file: "backends/dev.backend.hcl"
           backend-key: "${{ matrix.subscription.subscription_id }}-terraform.tfstate"
-          terraform-additional-args: "-var 'subscription_name=${{ matrix.subscription.name }}' -var 'subscription_id=${{ matrix.subscription.subscription_id }}' -var 'monthly_budget=${{ matrix.subscription.monthly_budget }}'"
+          plan-artifact-name: terraform-sub-dev-${{ matrix.subscription.subscription_id }}
           AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
           AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
           AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
