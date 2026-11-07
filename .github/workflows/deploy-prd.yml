@@ -33,6 +33,7 @@ jobs:
           terraform-folder: "terraform"
           terraform-var-file: "tfvars/dev.tfvars"
           terraform-backend-file: "backends/dev.backend.hcl"
+          plan-artifact-name: terraform-core-dev
           AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
           AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
           AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
@@ -76,6 +77,7 @@ jobs:
           terraform-var-file: "tfvars/dev.tfvars"
           terraform-backend-file: "backends/dev.backend.hcl"
           backend-key: "${{ matrix.subscription.subscription_id }}-terraform.tfstate"
+          plan-artifact-name: terraform-sub-dev-${{ matrix.subscription.subscription_id }}
           AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
           AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
           AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
@@ -98,6 +100,7 @@ jobs:
           terraform-folder: "terraform"
           terraform-var-file: "tfvars/prd.tfvars"
           terraform-backend-file: "backends/prd.backend.hcl"
+          plan-artifact-name: terraform-core-prd
           AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
           AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
           AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
@@ -141,6 +144,7 @@ jobs:
           terraform-var-file: "tfvars/prd.tfvars"
           terraform-backend-file: "backends/prd.backend.hcl"
           backend-key: "${{ matrix.subscription.subscription_id }}-terraform.tfstate"
+          plan-artifact-name: terraform-sub-prd-${{ matrix.subscription.subscription_id }}
           AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
           AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
           AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
