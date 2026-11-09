@@ -35,6 +35,8 @@ jobs:
           terraform -chdir="$TF_ROOT" init -backend=false -input=false -lockfile=readonly
           terraform -chdir="$TF_ROOT" validate
           git diff --exit-code -- "$TF_ROOT/.terraform.lock.hcl" "$TF_ROOT/.terraform-version"
+      - name: Test budget policy projection without Azure access
+        run: terraform -chdir=terraform test
   verify-terraform-sub:
     name: Verify terraform-sub toolchain
     runs-on: ubuntu-latest
@@ -56,6 +58,9 @@ jobs:
           terraform -chdir="$TF_ROOT" init -backend=false -input=false -lockfile=readonly
           terraform -chdir="$TF_ROOT" validate
           git diff --exit-code -- "$TF_ROOT/.terraform.lock.hcl" "$TF_ROOT/.terraform-version"
+
+      - name: Test budget policy plans without Azure access
+        run: terraform -chdir=terraform-sub test
 
   observe-terraform:
     name: Observe terraform binary toolchain
