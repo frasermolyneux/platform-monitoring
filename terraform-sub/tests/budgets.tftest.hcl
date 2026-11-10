@@ -79,6 +79,7 @@ run "version_one_policies" {
         environment          = "Production"
         environment_tag      = "prd"
         resource_group_names = ["rg-example-prd-uksouth", "rg-example-prd-ukwest"]
+        rationale            = null
       }
       "platform-radar-Production" = {
         monthly_budget       = 10

@@ -97,7 +97,7 @@ run "version_one_filters_by_subscription_and_deployment_environment" {
               actual_thresholds   = [95]
               forecast_thresholds = [110]
               contact_emails      = ["budget@example.com"]
-              rationale           = "Fixture"
+              rationale           = null
             }
             other = {
               monthly_budget      = 50
@@ -115,6 +115,7 @@ run "version_one_filters_by_subscription_and_deployment_environment" {
             example-Production = {
               subscription_id = "11111111-1111-1111-1111-111111111111"
               monthly_budget  = 30
+              rationale       = null
             }
             other-Development = {
               subscription_id = "22222222-2222-2222-2222-222222222222"
@@ -131,6 +132,8 @@ run "version_one_filters_by_subscription_and_deployment_environment" {
       output.subscriptions[0].subscription_budget_policy.budget_name == "budget-sub-example" &&
       output.subscriptions[0].subscription_budget_policy.actual_thresholds == [95] &&
       output.subscriptions[0].subscription_budget_policy.forecast_thresholds == [110] &&
+      output.subscriptions[0].subscription_budget_policy.rationale == null &&
+      output.subscriptions[0].workload_budget_policies["example-Production"].rationale == null &&
       keys(output.subscriptions[0].workload_budget_policies) == ["example-Production"]
     )
     error_message = "Policies must be projected only into the exact subscription and matching deployment environment matrix."
