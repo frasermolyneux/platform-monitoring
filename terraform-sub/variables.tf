@@ -13,7 +13,7 @@ variable "subscription_id" {}
 variable "action_group_subscription_id" {}
 
 variable "subscription_budget_policy" {
-  description = "Required version 1 subscription policy from platform-workloads."
+  description = "Optional version 1 subscription policy from platform-workloads; null when no subscription budget is configured."
   type = object({
     monthly_budget      = number
     subscription_id     = string
@@ -24,7 +24,8 @@ variable "subscription_budget_policy" {
     forecast_thresholds = set(number)
     contact_emails      = set(string)
   })
-  nullable = false
+  default  = null
+  nullable = true
 }
 
 variable "workload_budget_policies" {

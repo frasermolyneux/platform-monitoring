@@ -1,7 +1,10 @@
 locals {
   budget_subscription_scope  = "/subscriptions/${var.subscription_id}"
   subscription_budget_policy = var.subscription_budget_policy
-  all_budget_policies        = merge({ subscription = local.subscription_budget_policy }, var.workload_budget_policies)
+  all_budget_policies = merge(
+    var.subscription_budget_policy == null ? {} : { subscription = var.subscription_budget_policy },
+    var.workload_budget_policies
+  )
   budget_notifications = {
     for key, policy in local.all_budget_policies : key => concat(
       [for threshold in policy.actual_thresholds : { threshold = threshold, threshold_type = "Actual" }],
@@ -38,7 +41,8 @@ resource "terraform_data" "budget_policy_validation" {
     }
     precondition {
       condition = (
-        lower(local.subscription_budget_policy.scope) == lower(local.budget_subscription_scope) &&
+        (local.subscription_budget_policy == null ||
+        lower(local.subscription_budget_policy.scope) == lower(local.budget_subscription_scope)) &&
         alltrue([for policy in values(var.workload_budget_policies) :
           policy.monthly_budget > 0 &&
           length(policy.resource_group_names) > 0 &&
@@ -61,7 +65,7 @@ resource "terraform_data" "budget_policy_validation" {
 }
 
 resource "azurerm_consumption_budget_subscription" "subscription" {
-  count = local.subscription_budget_policy.monthly_budget > 0 ? 1 : 0
+  count = try(local.subscription_budget_policy.monthly_budget, 0) > 0 ? 1 : 0
 
   name            = local.subscription_budget_policy.budget_name
   subscription_id = local.subscription_budget_policy.scope
@@ -73,7 +77,7 @@ resource "azurerm_consumption_budget_subscription" "subscription" {
   }
 
   dynamic "notification" {
-    for_each = local.budget_notifications.subscription
+    for_each = try(local.budget_notifications.subscription, [])
     content {
       enabled        = true
       threshold      = notification.value.threshold

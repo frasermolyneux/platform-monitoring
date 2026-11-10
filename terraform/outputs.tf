@@ -25,14 +25,26 @@ output "subscriptions" {
     condition = (
       can(keys(local.cost_budget_policies.subscriptions)) &&
       can(keys(local.cost_budget_policies.workload_environments)) &&
+      alltrue([for name, policy in local.cost_budget_policies.subscriptions :
+        try(
+          policy.monthly_budget >= 0 &&
+          lower(policy.subscription_id) == lower(local.all_subscriptions[name].subscription_id),
+          false
+        )
+      ]) &&
       alltrue([for name, sub in local.all_subscriptions :
-        can(local.cost_budget_policies.subscriptions[name].monthly_budget)
+        can(sub.monthly_budget) ? try(
+          sub.monthly_budget == null ||
+          tonumber(sub.monthly_budget) <= 0 ||
+          can(local.cost_budget_policies.subscriptions[name].monthly_budget),
+          false
+        ) : true
       ]) &&
       alltrue([for policy in values(try(local.cost_budget_policies.workload_environments, {})) :
         contains([for sub in values(local.all_subscriptions) : lower(sub.subscription_id)], lower(policy.subscription_id))
       ])
     )
-    error_message = "Version 1 cost_budget_policies must publish both policy maps, a subscription policy for every subscription, and only known workload subscription IDs."
+    error_message = "Version 1 cost_budget_policies must publish both policy maps, valid policies for enabled subscription budgets, and workload policies scoped to known subscriptions."
   }
 }
 

@@ -69,6 +69,49 @@ run "disabled_zero_budget_policy" {
   }
 }
 
+run "no_subscription_budget_policy" {
+  command = plan
+  variables {
+    subscription_budget_policy = null
+  }
+  assert {
+    condition     = length(azurerm_consumption_budget_subscription.subscription) == 0
+    error_message = "A missing subscription policy must not create a subscription budget."
+  }
+}
+
+run "workload_only_policy_without_subscription_budget" {
+  command = plan
+  variables {
+    subscription_budget_policy = null
+    workload_budget_policies = {
+      "example-Production" = {
+        monthly_budget       = 30
+        subscription_id      = "11111111-1111-1111-1111-111111111111"
+        scope                = "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg-example-prd-uksouth"
+        budget_name          = "example-prd-monthly"
+        start_date           = "2026-11-01T00:00:00Z"
+        actual_thresholds    = [95]
+        forecast_thresholds  = [110]
+        contact_emails       = ["budget@example.com"]
+        workload             = "example"
+        environment          = "Production"
+        environment_tag      = "prd"
+        resource_group_names = ["rg-example-prd-uksouth"]
+      }
+    }
+  }
+  assert {
+    condition = (
+      length(azurerm_consumption_budget_subscription.subscription) == 0 &&
+      length(azurerm_consumption_budget_resource_group.workload) == 1 &&
+      azurerm_consumption_budget_resource_group.workload["example-Production"].name == "example-prd-monthly" &&
+      azurerm_consumption_budget_resource_group.workload["example-Production"].amount == 30
+    )
+    error_message = "Workload budgets must remain active when no subscription budget policy is configured."
+  }
+}
+
 run "version_one_policies" {
   command = plan
   variables {
