@@ -1,88 +1,49 @@
-# Cost budget deployment and adoption
+# Cost budgets and adoption
 
-`platform-workloads` is the sole source of subscription amounts and workload/
-environment policy. Monitoring consumes its additive `cost_budget_policies`
-version 1 output, projects policies into the matching subscription matrix, and
-deploys budgets through `terraform-sub`. The legacy `subscriptions.monthly_budget`
-field and `azurerm_consumption_budget_subscription.subscription[0]` address remain
-compatible. An older producer state supplies no workload policies; deploy the
-producer first to activate workload coverage.
+`platform-workloads` owns amounts and `cost_budget_policies` v1
+([policy contract](https://github.com/frasermolyneux/platform-workloads/blob/main/docs/cost-budget-policy.md)).
+Monitoring projects those policies into subscription deployment jobs; legacy
+`monthly_budget` input and `subscription[0]` state addresses remain compatible.
+Defaults for subscriptions and workloads are actual **95%** and forecast **110%**,
+with direct email and additive Owner routing. Policy overrides are preserved.
+Amounts stay in the producer, not duplicated here. No shutdown actions exist.
 
-Each policy includes `monthly_budget`, bare `subscription_id`, full ARM `scope`,
-`budget_name`, immutable first-of-month `start_date`, `actual_thresholds`,
-`forecast_thresholds`, and `contact_emails`. Workload policies additionally include
-`workload`, `environment`, `environment_tag`, and `resource_group_names`.
-Producer defaults are actual 50/80/100% and forecast 100%, with direct delivery to
-frasermolyneux@mx-mail.io; overrides are retained. Owner routing remains additive.
-Azure supports at most five notifications per budget. No shutdown or remediation
-actions are configured.
+Subscription budgets are unfiltered backstops. Workload/environment budgets use
+exact `ResourceGroupName` filters across declared regions, with one amount for the
+whole environment. Do not sum overlapping subscription and workload budgets.
+The adopted budgets below retain RG scope without filters.
 
-## Scope and discovery contract
+Discovery must use the full budget ID
+`<scope>/providers/Microsoft.Consumption/budgets/<name>` and filters, correlated
+with RG `Workload`/`Environment` tags; budgets have no ordinary tag field.
+`prevent_destroy` guards managed budget deletion/replacement; intentional
+retirement requires separate review.
 
-Subscription budgets are unfiltered aggregate backstops; never sum their amount
-with workload amounts to calculate the estate budget. Workload/environment budgets
-normally have subscription scope and an exact `ResourceGroupName` dimension (`In`)
-covering all declared RGs across regions. The amount is applied once to the whole
-environment, not once per RG. The two adopted exceptions below retain actual RG
-scope and no filters.
+## Approval and deployment order
 
-The canonical budget ID is
-`<scope>/providers/Microsoft.Consumption/budgets/<budget_name>`. New workload names
-are `<workload>-<environment_tag>-monthly`; existing subscription names stay
-`budget-<subscription-name>`. Consumers must inspect the full ID, scope and filters,
-then correlate exact RG names and their `Workload`/`Environment` tags. Budget
-resources have no ordinary tag field. Do not infer identity from display name or
-sum overlapping aggregate and workload budgets.
+1. Deploy the producer policy first.
+2. Deploy Radar and IDP ownership releases using
+   `removed { lifecycle { destroy = false } }`. Verify both source states no
+   longer own the budgets and the live IDs still exist. Never rename, delete,
+   duplicate or manage a budget from two states.
+3. Keep GitHub `COST_BUDGET_ADOPTION_COMPLETE` unset/false. It blocks subscription
+   plans containing RG budgets. Main/scheduled deployment applies automatically;
+   do not rely on an environment approval dialog.
+4. With explicit operator approval, import the exact budgets below into the
+   monitoring management-subscription state. Use its backend/tfvars, not core
+   state, and the pinned CLI. Set `TF_VAR_subscription_name`,
+   `TF_VAR_subscription_id`, `TF_VAR_monthly_budget`,
+   `TF_VAR_subscription_budget_policy` and `TF_VAR_workload_budget_policies`
+   from the updated core output, as the workflows do. For this approved manual
+   session only, set `TF_VAR_legacy_budget_adoption_complete=true`; keep the
+   GitHub variable false until both imports are verified.
 
-`prevent_destroy` guards managed budgets against accidental removal, scope,
-name or start-date replacement, including accidentally disabling an existing
-budget. Intentional retirement requires a separately reviewed change. Removing
-the entire resource block bypasses Terraform's lifecycle guard and is not an
-approved retirement procedure.
+| Source state address | Destination key in `azurerm_consumption_budget_resource_group.workload` |
+|---|---|
+| Radar: `azurerm_consumption_budget_resource_group.radar` | `platform-radar-Production` |
+| IDP: `azurerm_consumption_budget_resource_group.portal` | `platform-developer-portal-Production` |
 
-## Existing budget adoption: approval required, not performed by this PR
-
-Read-only Azure inventory on 2026-11-09 confirmed both existing budgets at GBP10
-per month, Monthly, start `2026-10-01T00:00:00Z`, no filters. The monitoring
-management subscription state contains only its subscription budget, not these
-RG budgets. They are currently owned by the source workload states:
-
-| Source state address | Destination in monitoring `terraform-sub` | RG / existing budget name |
-|---|---|---|
-| Radar: `azurerm_consumption_budget_resource_group.radar` | `azurerm_consumption_budget_resource_group.workload["platform-radar-Production"]` | `rg-platform-radar-prd-uksouth` / `radar-monthly` |
-| IDP: `azurerm_consumption_budget_resource_group.portal` | `azurerm_consumption_budget_resource_group.workload["platform-developer-portal-Production"]` | `rg-platform-developer-portal-prd-uksouth` / `idp-monthly-notification` |
-
-Both use subscription `7760848c-794d-4a19-8cb2-52f71a21ac2b`. Do not create
-replacement budgets under new names. Do not delete the live budgets or let two
-Terraform states manage the same ID. The following steps need explicit operator
-approval; no apply, import, state removal or Azure change was executed here.
-
-1. Merge and deploy `platform-workloads` policy first. Review its evidence-based
-   amounts and stable IDs. Normal budgets exclude the known one-off notification
-   incident only for baseline setting; cost reporting must still include it.
-   Do not linearly extrapolate early-month observations.
-2. Deploy the source Radar and IDP ownership-transfer PRs using
-   `removed { lifecycle { destroy = false } }`. Confirm each source plan only
-   relinquishes its budget (and Radar's budget-only clock), never destroys the
-   live budget. Verify the source state no longer owns the budget and the ARM ID
-   still exists before proceeding.
-3. Keep `COST_BUDGET_ADOPTION_COMPLETE` unset/false in GitHub variables until
-   transfer and import are complete. The Terraform gate defaults to false and
-   blocks any subscription plan containing RG budgets. The observed Production
-   environment has no required-reviewer protection; do not assume there is an
-   approval dialog. Main/scheduled deployment applies automatically, so gate
-   release itself requires explicit operator approval.
-4. With the pinned `terraform-sub/.terraform-version` CLI, initialize the exact
-   Production subscription backend and supply policy inputs projected from the
-   updated core plan/output. The management key is
-   `7760848c-794d-4a19-8cb2-52f71a21ac2b-terraform.tfstate` in
-   `sa74f04c5f984e/tfstate`, not the core `terraform.tfstate`. Set
-   `TF_VAR_subscription_name`, `TF_VAR_subscription_id`, `TF_VAR_monthly_budget`,
-   `TF_VAR_subscription_budget_policy` (JSON) and `TF_VAR_workload_budget_policies`
-   (JSON) exactly as the workflow does. For this approved manual import session
-   only, set `TF_VAR_legacy_budget_adoption_complete=true` after verifying source
-   release; keep the GitHub variable false so automatic deployment stays blocked.
-   Then, only after approval, run:
+Preserve both budgets' start date `2026-10-01T00:00:00Z`, names and scopes:
 
 ```powershell
 terraform -chdir=terraform-sub init -lockfile=readonly -reconfigure -backend-config=backends/prd.backend.hcl -backend-config=key=7760848c-794d-4a19-8cb2-52f71a21ac2b-terraform.tfstate
@@ -91,27 +52,13 @@ terraform -chdir=terraform-sub import -var-file=tfvars/prd.tfvars 'azurerm_consu
 terraform -chdir=terraform-sub plan -var-file=tfvars/prd.tfvars
 ```
 
-5. Review the refreshed core and **every subscription** plan after producer
-   deployment. Require no budget deletion/replacement, unchanged legacy names/
-   scope/start dates, correct RG filters and direct email on every notification.
-   A missing import must block deployment, not be worked around by renaming.
-   Verify both destination state IDs, then explicitly approve setting the GitHub
-   repository variable `COST_BUDGET_ADOPTION_COMPLETE=true` (or an equivalent
-   environment-level value). This permits automatic central management; do not set
-   it before import. Deploy monitoring Development then Production core/subscription
-   stacks. A future environment override must not silently bypass this gate.
-6. Enable/update IDP discovery after policy and budgets exist. Verify full IDs,
-   filters and RG tag mapping. Validate actual email receipt separately through
-   an approved operational procedure. The shared-subscription 50% notification
-   fired on October 24; delivery is **unverified**, not a successful delivery test.
+5. Review refreshed core and every subscription plan. Require no budget
+   deletion/replacement, correct scope/filters, and direct email on each alert.
+   Verify both destination state IDs before approving the GitHub variable
+   `COST_BUDGET_ADOPTION_COMPLETE=true`. Deploy monitoring Development then
+   Production core/subscription stacks.
+6. Update IDP discovery after budgets exist. Verify actual email receipt
+   separately; delivery remains unverified.
 
-## Validation
-
-Run pinned CLI `fmt -check -recursive`, `init -backend=false -lockfile=readonly`,
-and `validate` for both roots, plus `terraform -chdir=terraform test` and
-`terraform -chdir=terraform-sub test`.
-Mock-provider tests cover defaults, overrides, aggregate versus RG-filtered
-scoping, both adopted identities, producer-to-matrix projection and rejection of
-invalid contract versions, scope and direct routing.
-Production read-only plans use the `run-prd-plan` PR label and Production approval;
-they must be repeated after the producer state publishes version 1 policies.
+Validation commands are in [AGENTS.md](../AGENTS.md); both roots also run
+`terraform test`. Repeat state-backed plans after the producer publishes policy.

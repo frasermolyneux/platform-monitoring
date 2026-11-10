@@ -7,8 +7,8 @@ locals {
     scope               = local.budget_subscription_scope
     budget_name         = "budget-${var.subscription_name}"
     start_date          = "2026-04-01T00:00:00Z"
-    actual_thresholds   = toset([50, 80, 100])
-    forecast_thresholds = toset([100])
+    actual_thresholds   = toset([95])
+    forecast_thresholds = toset([110])
     contact_emails      = toset(["frasermolyneux@mx-mail.io"])
   }
   all_budget_policies = merge({ subscription = local.subscription_budget_policy }, var.workload_budget_policies)

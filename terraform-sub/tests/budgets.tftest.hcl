@@ -32,13 +32,13 @@ run "legacy_subscription" {
     condition = (
       azurerm_consumption_budget_subscription.subscription[0].amount == 150 &&
       azurerm_consumption_budget_subscription.subscription[0].time_period[0].start_date == "2026-04-01T00:00:00Z" &&
-      length(azurerm_consumption_budget_subscription.subscription[0].notification) == 4 &&
+      length(azurerm_consumption_budget_subscription.subscription[0].notification) == 2 &&
       alltrue([for n in azurerm_consumption_budget_subscription.subscription[0].notification :
         contains(n.contact_emails, "frasermolyneux@mx-mail.io") &&
-        (n.threshold_type == "Actual" ? contains([50, 80, 100], n.threshold) : n.threshold == 100)
+        (n.threshold_type == "Actual" ? n.threshold == 95 : n.threshold == 110)
       ])
     )
-    error_message = "Legacy input must receive direct email, actual 50/80/100 and forecast 100 defaults without changing identity."
+    error_message = "Legacy input must receive direct email, actual 95 and forecast 110 defaults without changing identity."
   }
 }
 
@@ -72,8 +72,8 @@ run "version_one_policies" {
         scope                = "/subscriptions/11111111-1111-1111-1111-111111111111"
         budget_name          = "example-prd-monthly"
         start_date           = "2026-11-01T00:00:00Z"
-        actual_thresholds    = [50, 80, 100]
-        forecast_thresholds  = [100]
+        actual_thresholds    = [95]
+        forecast_thresholds  = [110]
         contact_emails       = ["budget@example.com"]
         workload             = "example"
         environment          = "Production"
@@ -86,8 +86,8 @@ run "version_one_policies" {
         scope                = "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg-platform-radar-prd-uksouth"
         budget_name          = "radar-monthly"
         start_date           = "2026-10-01T00:00:00Z"
-        actual_thresholds    = [50, 80, 100]
-        forecast_thresholds  = [100]
+        actual_thresholds    = [95]
+        forecast_thresholds  = [110]
         contact_emails       = ["budget@example.com"]
         workload             = "platform-radar"
         environment          = "Production"
@@ -100,8 +100,8 @@ run "version_one_policies" {
         scope                = "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg-platform-developer-portal-prd-uksouth"
         budget_name          = "idp-monthly-notification"
         start_date           = "2026-10-01T00:00:00Z"
-        actual_thresholds    = [50, 80, 100]
-        forecast_thresholds  = [100]
+        actual_thresholds    = [95]
+        forecast_thresholds  = [110]
         contact_emails       = ["budget@example.com"]
         workload             = "platform-developer-portal"
         environment          = "Production"
@@ -109,6 +109,20 @@ run "version_one_policies" {
         resource_group_names = ["rg-platform-developer-portal-prd-uksouth"]
       }
     }
+  }
+  assert {
+    condition = alltrue([for b in concat(
+      values(azurerm_consumption_budget_subscription.workload),
+      values(azurerm_consumption_budget_resource_group.workload)
+      ) :
+      length(b.notification) == 2 &&
+      alltrue([for n in b.notification :
+        n.enabled && n.operator == "GreaterThanOrEqualTo" &&
+        contains(n.contact_emails, "budget@example.com") &&
+        (n.threshold_type == "Actual" ? n.threshold == 95 : n.threshold == 110)
+      ])
+    ])
+    error_message = "Filtered and adopted RG workload budgets must both route actual 95 and forecast 110 alerts."
   }
   assert {
     condition = (
@@ -153,8 +167,8 @@ run "reject_cross_subscription_scope" {
       scope               = "/subscriptions/22222222-2222-2222-2222-222222222222"
       budget_name         = "wrong-subscription"
       start_date          = "2026-11-01T00:00:00Z"
-      actual_thresholds   = [50]
-      forecast_thresholds = [100]
+      actual_thresholds   = [95]
+      forecast_thresholds = [110]
       contact_emails      = ["budget@example.com"]
     }
   }
@@ -170,8 +184,8 @@ run "reject_missing_direct_email" {
       scope               = "/subscriptions/11111111-1111-1111-1111-111111111111"
       budget_name         = "budget-sub-example"
       start_date          = "2026-04-01T00:00:00Z"
-      actual_thresholds   = [50]
-      forecast_thresholds = [100]
+      actual_thresholds   = [95]
+      forecast_thresholds = [110]
       contact_emails      = []
     }
   }
@@ -188,8 +202,8 @@ run "reject_empty_rg_inventory" {
         scope                = "/subscriptions/11111111-1111-1111-1111-111111111111"
         budget_name          = "example-prd-monthly"
         start_date           = "2026-11-01T00:00:00Z"
-        actual_thresholds    = [50, 80, 100]
-        forecast_thresholds  = [100]
+        actual_thresholds    = [95]
+        forecast_thresholds  = [110]
         contact_emails       = ["budget@example.com"]
         workload             = "example"
         environment          = "Production"
@@ -211,7 +225,7 @@ run "reject_invalid_thresholds" {
       budget_name         = "budget-sub-example"
       start_date          = "2026-04-01T00:00:00Z"
       actual_thresholds   = [-1]
-      forecast_thresholds = [100]
+      forecast_thresholds = [110]
       contact_emails      = ["budget@example.com"]
     }
   }
@@ -228,8 +242,8 @@ run "reject_unapproved_legacy_adoption" {
         scope                = "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg-platform-radar-prd-uksouth"
         budget_name          = "radar-monthly"
         start_date           = "2026-10-01T00:00:00Z"
-        actual_thresholds    = [50, 80, 100]
-        forecast_thresholds  = [100]
+        actual_thresholds    = [95]
+        forecast_thresholds  = [110]
         contact_emails       = ["budget@example.com"]
         workload             = "platform-radar"
         environment          = "Production"
