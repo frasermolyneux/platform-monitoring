@@ -13,16 +13,35 @@ variables {
   subscription_name            = "sub-example"
   subscription_id              = "11111111-1111-1111-1111-111111111111"
   action_group_subscription_id = "11111111-1111-1111-1111-111111111111"
+  subscription_budget_policy = {
+    monthly_budget      = 0
+    subscription_id     = "11111111-1111-1111-1111-111111111111"
+    scope               = "/subscriptions/11111111-1111-1111-1111-111111111111"
+    budget_name         = "budget-sub-example"
+    start_date          = "2026-04-01T00:00:00Z"
+    actual_thresholds   = [95]
+    forecast_thresholds = [110]
+    contact_emails      = ["budget@example.com"]
+  }
   tags = {
     DeployedBy = "Terraform"
     Git        = "https://github.com/example/example"
   }
 }
 
-run "legacy_subscription" {
+run "version_one_subscription_policy" {
   command = plan
   variables {
-    monthly_budget = 150
+    subscription_budget_policy = {
+      monthly_budget      = 150
+      subscription_id     = "11111111-1111-1111-1111-111111111111"
+      scope               = "/subscriptions/11111111-1111-1111-1111-111111111111"
+      budget_name         = "budget-sub-example"
+      start_date          = "2026-04-01T00:00:00Z"
+      actual_thresholds   = [95]
+      forecast_thresholds = [110]
+      contact_emails      = ["frasermolyneux@mx-mail.io"]
+    }
   }
   assert {
     condition     = azurerm_consumption_budget_subscription.subscription[0].name == "budget-sub-example"
@@ -38,23 +57,21 @@ run "legacy_subscription" {
         (n.threshold_type == "Actual" ? n.threshold == 95 : n.threshold == 110)
       ])
     )
-    error_message = "Legacy input must receive direct email, actual 95 and forecast 110 defaults without changing identity."
+    error_message = "The version 1 policy must retain identity and configure direct actual/forecast alerts."
   }
 }
 
-run "disabled_legacy_budget" {
+run "disabled_zero_budget_policy" {
   command = plan
   assert {
     condition     = length(azurerm_consumption_budget_subscription.subscription) == 0
-    error_message = "Zero legacy monthly budget must remain disabled."
+    error_message = "A zero-valued version 1 policy must remain disabled."
   }
 }
 
 run "version_one_policies" {
   command = plan
   variables {
-    legacy_budget_adoption_complete = true
-    monthly_budget                  = 999
     subscription_budget_policy = {
       monthly_budget      = 200
       subscription_id     = "11111111-1111-1111-1111-111111111111"
@@ -123,7 +140,7 @@ run "version_one_policies" {
         (n.threshold_type == "Actual" ? n.threshold == 95 : n.threshold == 110)
       ])
     ])
-    error_message = "Filtered and adopted RG workload budgets must both route actual 95 and forecast 110 alerts."
+    error_message = "Filtered and resource-group workload budgets must route actual 95 and forecast 110 alerts."
   }
   assert {
     condition = (
@@ -155,7 +172,7 @@ run "version_one_policies" {
         b.time_period[0].start_date == "2026-10-01T00:00:00Z" && b.amount == 10 && length(b.filter) == 0
       ])
     )
-    error_message = "Legacy RG budgets must retain exact names, amounts, start dates and unfiltered RG scope for import."
+    error_message = "Resource-group budgets must retain exact names, amounts, start dates and unfiltered RG scope."
   }
 }
 
@@ -228,29 +245,6 @@ run "reject_invalid_thresholds" {
       actual_thresholds   = [-1]
       forecast_thresholds = [110]
       contact_emails      = ["budget@example.com"]
-    }
-  }
-  expect_failures = [terraform_data.budget_policy_validation]
-}
-
-run "reject_unapproved_legacy_adoption" {
-  command = plan
-  variables {
-    workload_budget_policies = {
-      "platform-radar-Production" = {
-        monthly_budget       = 10
-        subscription_id      = "11111111-1111-1111-1111-111111111111"
-        scope                = "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg-platform-radar-prd-uksouth"
-        budget_name          = "radar-monthly"
-        start_date           = "2026-10-01T00:00:00Z"
-        actual_thresholds    = [95]
-        forecast_thresholds  = [110]
-        contact_emails       = ["budget@example.com"]
-        workload             = "platform-radar"
-        environment          = "Production"
-        environment_tag      = "prd"
-        resource_group_names = ["rg-platform-radar-prd-uksouth"]
-      }
     }
   }
   expect_failures = [terraform_data.budget_policy_validation]

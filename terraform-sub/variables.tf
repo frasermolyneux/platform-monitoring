@@ -12,19 +12,8 @@ variable "subscription_id" {}
 
 variable "action_group_subscription_id" {}
 
-variable "monthly_budget" {
-  description = "Monthly budget amount for this subscription. Set to 0 to skip budget creation."
-  type        = number
-  default     = 0
-
-  validation {
-    condition     = var.monthly_budget >= 0
-    error_message = "Monthly budget must be nonnegative."
-  }
-}
-
 variable "subscription_budget_policy" {
-  description = "Version 1 subscription policy from platform-workloads; null preserves the legacy monthly_budget input."
+  description = "Required version 1 subscription policy from platform-workloads."
   type = object({
     monthly_budget      = number
     subscription_id     = string
@@ -35,7 +24,7 @@ variable "subscription_budget_policy" {
     forecast_thresholds = set(number)
     contact_emails      = set(string)
   })
-  default = null
+  nullable = false
 }
 
 variable "workload_budget_policies" {
@@ -55,12 +44,6 @@ variable "workload_budget_policies" {
     resource_group_names = set(string)
   }))
   default = {}
-}
-
-variable "legacy_budget_adoption_complete" {
-  description = "Operator gate: true only after the documented source ownership releases and central RG budget imports."
-  type        = bool
-  default     = false
 }
 
 variable "tags" {

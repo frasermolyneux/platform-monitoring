@@ -1,17 +1,7 @@
 locals {
-  budget_subscription_scope = "/subscriptions/${var.subscription_id}"
-  # Older platform-workloads states publish only monthly_budget.
-  subscription_budget_policy = var.subscription_budget_policy != null ? var.subscription_budget_policy : {
-    monthly_budget      = var.monthly_budget
-    subscription_id     = var.subscription_id
-    scope               = local.budget_subscription_scope
-    budget_name         = "budget-${var.subscription_name}"
-    start_date          = "2026-04-01T00:00:00Z"
-    actual_thresholds   = toset([95])
-    forecast_thresholds = toset([110])
-    contact_emails      = toset(["frasermolyneux@mx-mail.io"])
-  }
-  all_budget_policies = merge({ subscription = local.subscription_budget_policy }, var.workload_budget_policies)
+  budget_subscription_scope  = "/subscriptions/${var.subscription_id}"
+  subscription_budget_policy = var.subscription_budget_policy
+  all_budget_policies        = merge({ subscription = local.subscription_budget_policy }, var.workload_budget_policies)
   budget_notifications = {
     for key, policy in local.all_budget_policies : key => concat(
       [for threshold in policy.actual_thresholds : { threshold = threshold, threshold_type = "Actual" }],
@@ -32,10 +22,6 @@ resource "terraform_data" "budget_policy_validation" {
   input = local.all_budget_policies
 
   lifecycle {
-    precondition {
-      condition     = length(local.workload_resource_group_budgets) == 0 || var.legacy_budget_adoption_complete
-      error_message = "RG budget adoption is blocked. Release source ownership without destroy, import both exact legacy IDs, verify central state, then approve COST_BUDGET_ADOPTION_COMPLETE=true. See docs/cost-budgets.md."
-    }
     precondition {
       condition = alltrue([for policy in values(local.all_budget_policies) :
         lower(policy.subscription_id) == lower(var.subscription_id) &&

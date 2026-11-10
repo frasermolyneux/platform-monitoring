@@ -31,37 +31,6 @@ variables {
   }
 }
 
-run "legacy_output_compatible" {
-  command = plan
-  plan_options {
-    target = [data.terraform_remote_state.platform_workloads]
-  }
-  override_data {
-    target = data.terraform_remote_state.platform_workloads
-    values = {
-      outputs = {
-        subscriptions = {
-          example = {
-            name            = "sub-example"
-            subscription_id = "11111111-1111-1111-1111-111111111111"
-            environment     = "prd"
-            monthly_budget  = 150
-          }
-        }
-      }
-    }
-  }
-  assert {
-    condition = (
-      output.subscriptions[0].name == "sub-example" &&
-      output.subscriptions[0].monthly_budget == 150 &&
-      output.subscriptions[0].subscription_budget_policy == null &&
-      length(output.subscriptions[0].workload_budget_policies) == 0
-    )
-    error_message = "Older deployed producer state must retain the existing subscription contract."
-  }
-}
-
 run "version_one_filters_by_subscription_and_deployment_environment" {
   command = plan
   plan_options {
@@ -76,13 +45,11 @@ run "version_one_filters_by_subscription_and_deployment_environment" {
             name            = "sub-example"
             subscription_id = "11111111-1111-1111-1111-111111111111"
             environment     = "prd"
-            monthly_budget  = 150
           }
           other = {
             name            = "sub-other"
             subscription_id = "22222222-2222-2222-2222-222222222222"
             environment     = "dev"
-            monthly_budget  = 50
           }
         }
         cost_budget_policies = {
@@ -129,6 +96,7 @@ run "version_one_filters_by_subscription_and_deployment_environment" {
   assert {
     condition = (
       length(output.subscriptions) == 1 &&
+      output.subscriptions[0].monthly_budget == 150 &&
       output.subscriptions[0].subscription_budget_policy.budget_name == "budget-sub-example" &&
       output.subscriptions[0].subscription_budget_policy.actual_thresholds == [95] &&
       output.subscriptions[0].subscription_budget_policy.forecast_thresholds == [110] &&
@@ -171,7 +139,6 @@ run "reject_missing_subscription_policy" {
             name            = "sub-example"
             subscription_id = "11111111-1111-1111-1111-111111111111"
             environment     = "prd"
-            monthly_budget  = 150
           }
         }
         cost_budget_policies = { version = 1, subscriptions = {}, workload_environments = {} }
