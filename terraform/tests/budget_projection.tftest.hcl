@@ -51,6 +51,12 @@ run "version_one_filters_by_subscription_and_deployment_environment" {
             subscription_id = "22222222-2222-2222-2222-222222222222"
             environment     = "dev"
           }
+          workload-only = {
+            name            = "sub-workload-only"
+            subscription_id = "33333333-3333-3333-3333-333333333333"
+            environment     = "prd"
+            monthly_budget  = null
+          }
         }
         cost_budget_policies = {
           version = 1
@@ -88,6 +94,11 @@ run "version_one_filters_by_subscription_and_deployment_environment" {
               subscription_id = "22222222-2222-2222-2222-222222222222"
               monthly_budget  = 10
             }
+            workload-only-Production = {
+              subscription_id = "33333333-3333-3333-3333-333333333333"
+              monthly_budget  = 25
+              rationale       = "Workload-only subscription"
+            }
           }
         }
       }
@@ -95,16 +106,19 @@ run "version_one_filters_by_subscription_and_deployment_environment" {
   }
   assert {
     condition = (
-      length(output.subscriptions) == 1 &&
-      output.subscriptions[0].monthly_budget == 150 &&
-      output.subscriptions[0].subscription_budget_policy.budget_name == "budget-sub-example" &&
-      output.subscriptions[0].subscription_budget_policy.actual_thresholds == [95] &&
-      output.subscriptions[0].subscription_budget_policy.forecast_thresholds == [110] &&
-      output.subscriptions[0].subscription_budget_policy.rationale == null &&
-      output.subscriptions[0].workload_budget_policies["example-Production"].rationale == null &&
-      keys(output.subscriptions[0].workload_budget_policies) == ["example-Production"]
+      length(output.subscriptions) == 2 &&
+      one([for sub in output.subscriptions : sub if sub.name == "sub-example"]).monthly_budget == 150 &&
+      one([for sub in output.subscriptions : sub if sub.name == "sub-example"]).subscription_budget_policy.budget_name == "budget-sub-example" &&
+      one([for sub in output.subscriptions : sub if sub.name == "sub-example"]).subscription_budget_policy.actual_thresholds == [95] &&
+      one([for sub in output.subscriptions : sub if sub.name == "sub-example"]).subscription_budget_policy.forecast_thresholds == [110] &&
+      one([for sub in output.subscriptions : sub if sub.name == "sub-example"]).subscription_budget_policy.rationale == null &&
+      one([for sub in output.subscriptions : sub if sub.name == "sub-example"]).workload_budget_policies["example-Production"].rationale == null &&
+      keys(one([for sub in output.subscriptions : sub if sub.name == "sub-example"]).workload_budget_policies) == ["example-Production"] &&
+      one([for sub in output.subscriptions : sub if sub.name == "sub-workload-only"]).monthly_budget == 0 &&
+      one([for sub in output.subscriptions : sub if sub.name == "sub-workload-only"]).subscription_budget_policy == null &&
+      keys(one([for sub in output.subscriptions : sub if sub.name == "sub-workload-only"]).workload_budget_policies) == ["workload-only-Production"]
     )
-    error_message = "Policies must be projected only into the exact subscription and matching deployment environment matrix."
+    error_message = "Version 1 policies must preserve workload-only subscriptions and project each policy only into its subscription and environment."
   }
 }
 
@@ -139,6 +153,7 @@ run "reject_missing_subscription_policy" {
             name            = "sub-example"
             subscription_id = "11111111-1111-1111-1111-111111111111"
             environment     = "prd"
+            monthly_budget  = 150
           }
         }
         cost_budget_policies = { version = 1, subscriptions = {}, workload_environments = {} }
