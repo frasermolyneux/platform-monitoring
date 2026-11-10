@@ -55,10 +55,11 @@ capability impact only.
 - Severity-based Azure Monitor action groups (critical, high, moderate, low, informational) exposed via the `monitor_action_groups` output
 - A Production-only Entra-secured webhook group exposed separately as `status_evidence`, without changing the human notification contract
 - Subscription metadata surfaced through the `subscriptions` output for convenience.
-  Its existing `name`, `subscription_id`, and `monthly_budget` fields are preserved;
-  additive `subscription_budget_policy` and `workload_budget_policies` fields carry
-  the versioned platform-workloads policy into subscription deployment jobs.
-  See [Cost Budgets](cost-budgets.md) for scope, discovery and ownership-transfer rules.
+  Its existing `name` and `subscription_id` fields are preserved. The
+  `monthly_budget` compatibility field is derived from the v1 policy; subscription
+  deployment jobs consume the required `subscription_budget_policy` and
+  `workload_budget_policies` fields. See [Cost Budgets](cost-budgets.md) for scope,
+  identity and operational safety.
 
 ## Access and permissions
 
