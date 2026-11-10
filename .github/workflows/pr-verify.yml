@@ -92,6 +92,9 @@ jobs:
           TF_VAR_subscription_name: ${{ matrix.subscription.name }}
           TF_VAR_subscription_id: ${{ matrix.subscription.subscription_id }}
           TF_VAR_monthly_budget: ${{ matrix.subscription.monthly_budget }}
+          TF_VAR_subscription_budget_policy: ${{ toJSON(matrix.subscription.subscription_budget_policy) }}
+          TF_VAR_workload_budget_policies: ${{ toJSON(matrix.subscription.workload_budget_policies) }}
+          TF_VAR_legacy_budget_adoption_complete: ${{ vars.COST_BUDGET_ADOPTION_COMPLETE == 'true' }}
         with:
           terraform-folder: "terraform-sub"
           terraform-var-file: "tfvars/dev.tfvars"

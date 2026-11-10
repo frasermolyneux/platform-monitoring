@@ -1,15 +1,39 @@
 locals {
-  all_subscriptions = data.terraform_remote_state.platform_workloads.outputs.subscriptions
+  all_subscriptions    = data.terraform_remote_state.platform_workloads.outputs.subscriptions
+  cost_budget_policies = try(data.terraform_remote_state.platform_workloads.outputs.cost_budget_policies, null)
 
   subscriptions = [for name, sub in local.all_subscriptions : {
-    name            = sub.name
-    subscription_id = sub.subscription_id
-    monthly_budget  = try(sub.monthly_budget, 0)
+    name                       = sub.name
+    subscription_id            = sub.subscription_id
+    monthly_budget             = coalesce(try(sub.monthly_budget, 0), 0)
+    subscription_budget_policy = try(local.cost_budget_policies.subscriptions[name], null)
+    workload_budget_policies = {
+      for key, policy in try(local.cost_budget_policies.workload_environments, {}) :
+      key => policy if lower(policy.subscription_id) == lower(sub.subscription_id)
+    }
   } if sub.environment == var.environment]
 }
 
 output "subscriptions" {
   value = local.subscriptions
+
+  precondition {
+    condition     = local.cost_budget_policies == null ? true : local.cost_budget_policies.version == 1
+    error_message = "Unsupported platform-workloads cost_budget_policies version; expected version 1."
+  }
+  precondition {
+    condition = local.cost_budget_policies == null ? true : (
+      can(keys(local.cost_budget_policies.subscriptions)) &&
+      can(keys(local.cost_budget_policies.workload_environments)) &&
+      alltrue([for name, sub in local.all_subscriptions :
+        coalesce(try(sub.monthly_budget, 0), 0) <= 0 || can(local.cost_budget_policies.subscriptions[name].monthly_budget)
+      ]) &&
+      alltrue([for policy in values(try(local.cost_budget_policies.workload_environments, {})) :
+        contains([for sub in values(local.all_subscriptions) : lower(sub.subscription_id)], lower(policy.subscription_id))
+      ])
+    )
+    error_message = "Version 1 cost_budget_policies must publish both policy maps, a policy for every enabled subscription, and only known workload subscription IDs."
+  }
 }
 
 output "log_analytics" {

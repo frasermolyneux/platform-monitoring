@@ -12,6 +12,7 @@
 
 - [Manual Steps](/docs/manual-steps.md) - Secrets to seed alert contact details
 - [Consuming Platform Monitoring](/docs/consuming-platform-monitoring.md) - How downstream workloads read shared monitoring outputs
+- [Cost Budgets](/docs/cost-budgets.md) - Subscription/workload policy, scope contract and approval-gated adoption
 
 ## Overview
 
