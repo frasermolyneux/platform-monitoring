@@ -20,7 +20,7 @@ Sync persists actual job outcomes in a private container in its existing host
 storage, preserving original last-success/failure times across restarts and weekly
 schedules. Partial failures cannot produce successful job completion.
 
-Publishers emit four aggregate `ProcessHealthSnapshot` and seven private
+Publishers emit four aggregate `ProcessHealthSnapshot` and nine private
 `ProcessJobSnapshot` records per five minutes per environment. Public records
 contain counts and source identity only; server identities, paths, errors and ban
 contents stay private. Missing, stale or unobserved evidence is Unknown, never
@@ -29,11 +29,13 @@ rule identities, evaluation schedules and action groups; no per-server paid
 alert series or new alert resources are introduced.
 
 At the reviewed UK South Analytics ingestion rate of US$2.88/GB, allowing 4 KiB
-per billed record gives 190,080 records/30 days across dev and production,
-approximately US$2.24 ingestion. A conservative 300,000 existing Hot LRS operations
+per billed record gives 224,640 records/30 days across dev and production,
+approximately US$2.65 ingestion. A conservative 300,000 baseline Hot LRS operations
 at the higher reviewed write rate (US$0.059/10,000, versus US$0.0047 reads) add
-US$1.77, with negligible stored state. Expected usage is lower, approximately
-US$3/month combined. This is below the approved US$5 incremental allowance,
+US$1.77. At normal cadence the two rotation jobs add 34,560 projection reads per
+30 days plus outcome persistence for 1,500 scheduled runs, roughly US$0.04 in
+operations with negligible stored state. The resulting estimate is about
+US$4.46/month, below the approved US$5 incremental allowance,
 not a hard billing cap; significant cadence, record-size or environment increases
 require a new estimate. Existing always-on compute, workspaces, storage accounts
 and alert-series counts are unchanged. Verify actual billed record sizes after
@@ -43,7 +45,8 @@ Deploy producers and their existing alert updates before status consumption.
 Verify all four identities, roles and original timestamps in the correct
 Application Insights resource; then require the status `--refresh-monitoring`
 preflight. First-ever jobs remain Unknown until they actually complete, including
-the weekly image job. Do not fabricate initial successes or backfill public history.
+the hourly observed rotation sync, daily observed rotation cleanup (03:00 UTC),
+and weekly image sync. Do not fabricate initial successes or backfill public history.
 Portal-web remains the detailed operational surface; status publishes aggregate
 capability impact only.
 
